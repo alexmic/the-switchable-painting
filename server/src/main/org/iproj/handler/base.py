@@ -17,7 +17,7 @@ class BaseHandler(tornado.web.RequestHandler):
         self.__is_auth(cback, *args, **kwargs)
     
     def post(self, *args, **kwargs):
-        """" Handles POST requests """
+        """ Handles POST requests """
         cback = self.base_post
         self.__is_auth(cback, *args, **kwargs)
 
@@ -28,14 +28,29 @@ class BaseHandler(tornado.web.RequestHandler):
     def base_post(self):
         pass
     
+    def __check_and_set_site(self):
+        # dummy registered subdomains
+        registered = ["wynford", "moscow"]
+        subdomain = self.request.host.split(".")[0]
+        if subdomain in registered:
+            # also check if cookie with 'subdomain' is present.
+            # if not refuse entry and redirect to login.
+            self.SUBDOMAIN = subdomain
+            return True
+        return False
+    
     def __is_auth(self, callback, *args, **kwargs):
         """ Checks if the user is authenticated and then calls the passed callback. """
         def is_auth():
-            return True
+            # check if site is registered and cookie is present.
+            # then check if user cookie is present, otherwise
+            # redirect to login.
+            return self.__check_and_set_site()
+            
         if is_auth():
             callback(*args, **kwargs)
         else:
-            self.render("Unauthorized.")
+            self.write("Unauthorized.")
     
     
     
