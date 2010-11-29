@@ -1,7 +1,6 @@
 package http.benchmark;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -9,13 +8,8 @@ import java.net.URL;
 
 public class ServerBenchmark {
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) 
-	{
-		try 
-		{
+	public static void main(String[] args) {
+		try {
 			new ServerBenchmark().run();
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
@@ -33,9 +27,8 @@ public class ServerBenchmark {
 		int requests       = 0;
 		int runs           = 20;
 		
-		for (int i = 0; i < runs; i++){			
-			while(finish - start < 1000)
-			{
+		for (int i = 0; i < runs; i++) {			
+			while(finish - start < 1000) {
 				HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 				conn.setRequestMethod("PUT");
 				conn.setDoOutput(true);
@@ -56,5 +49,4 @@ public class ServerBenchmark {
 		System.out.println();
 		System.out.println("Average requests per second: " + total_requests / runs);
 	}
-
 }
