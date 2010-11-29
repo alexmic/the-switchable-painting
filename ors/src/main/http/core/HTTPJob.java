@@ -21,8 +21,9 @@ public class HTTPJob implements Runnable{
 		this.output = output;
 	}
 	
-	public void setHandler(HTTPHandler handler){
+	public HTTPJob setHandler(HTTPHandler handler){
 		this.handler = handler;
+		return this;
 	}
 	
 	@Override
@@ -31,8 +32,10 @@ public class HTTPJob implements Runnable{
 			HTTPRequest request = new HTTPParser(input).getHTTPRequest();
 			String response = "";
 			if (handler != null){
+				System.out.println(request.getMethod());
 				Log.debug("Handler found. Handling request.");
 				response = handler.handle(request);
+				System.out.println("a" + response);
 			}
 			Log.debug("Request parsed and handled OK. Setting 200 header and response body.");
 			String header = getHTTPHeader(200);

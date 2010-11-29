@@ -1,5 +1,7 @@
 package http.core;
 
+import http.core.handler.ORSHandler;
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -72,7 +74,7 @@ public class HTTPServer {
 					new BufferedReader((new InputStreamReader(connectionSocket.getInputStream())));
 				final DataOutputStream output = 
 					new DataOutputStream(connectionSocket.getOutputStream());
-				threadPool.submit(new HTTPJob(input, output));
+				threadPool.submit(new HTTPJob(input, output).setHandler(new ORSHandler()));
 			} 
 			catch (IOException e) 
 			{

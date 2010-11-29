@@ -7,7 +7,8 @@ public class ORSHandler implements HTTPHandler {
 
 	@Override
 	public String handle(HTTPRequest request) throws HTTPHandleErrorException {
-		return "OK.";
+		System.out.println(request.toString());
+		return request.toString();
 	}
 
 }

@@ -42,8 +42,8 @@ public class HTTPParser {
 	private HTTPRequest _parse(BufferedReader input) throws IOException, HTTPParseErrorException{
 		HTTPRequest request = new HTTPRequest();
 		String requestLine = input.readLine();
-		String[] requestLineTokens = requestLine.split(" ");
-		
+		String[] requestLineTokens = requestLine.split("\\s");
+	
 		Log.debug("Parsing HTTP request. Request line is: " + requestLine);
 		
 		if (requestLineTokens.length == 3
@@ -51,8 +51,10 @@ public class HTTPParser {
 			
 			String method = requestLineTokens[0].toUpperCase();
 			String uri    = requestLineTokens[1];
+			String protocol = requestLineTokens[2];
 			request.setMethod(method);
 			request.setURI(uri);
+			request.setProtocol(protocol);
 			StringBuffer paramBuffer = new StringBuffer();
 			
 			if (method.equals("GET") || method.equals("POST") || method.equals("PUT") || method.equals("DELETE")){
@@ -85,10 +87,8 @@ public class HTTPParser {
 					}
 				}
 				
-				HashMap<String, String> params = null;
-				if (paramBuffer.length() > 0)
-				{
-					params = new HashMap<String, String>();
+				HashMap<String, String> params = new HashMap<String, String>();
+				if (paramBuffer.length() > 0){
 					String[] tokens = paramBuffer.toString().split("&");
 					for (String t : tokens){
 						String[] subTokens = t.split("=");
