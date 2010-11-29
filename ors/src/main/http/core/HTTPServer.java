@@ -14,7 +14,8 @@ import java.util.concurrent.Executors;
 import log.Log;
 
 /**
- * HTTPServer will handle the HTTP requests.
+ * The HTTPServer accepts connections from a server socket and dispatches a thread,
+ * to serve the accepted request. It uses a threadpool of 10 threads.
  * 
  * LOGGING CONVENTIONS:
  * + Any exception is logged into error.log.
@@ -27,10 +28,9 @@ import log.Log;
  * @author Alex Michael
  *
  */
-public class HTTPServer {
-
+public class HTTPServer 
+{
 	private Integer port;
-	
 	
 	public HTTPServer(Integer port)
 	{
@@ -46,17 +46,12 @@ public class HTTPServer {
 	public boolean start()
 	{
 		ServerSocket serverSocket;
-		try 
-		{
+		try {
 			serverSocket = new ServerSocket(port);
-		} 
-		catch (IOException e) 
-		{
+		} catch (IOException e) {
 			Log.error("EXCEPTION: IOException occured when initializing server socket. Exception message is: " + e.getMessage());
 			return false;
-		}
-		catch (Exception e) 
-		{
+		} catch (Exception e) {
 			Log.error("EXCEPTION: Unexpected error occured when initializing server socket. Exception message is: " + e.getMessage());
 			return false;
 		}
@@ -64,24 +59,18 @@ public class HTTPServer {
 		//Server loop
 		ExecutorService threadPool = Executors.newFixedThreadPool(10);
 		Log.debug("Server started succesfully.");
-		while (true) 
-		{
+		while (true) {
 			Socket connectionSocket;
-			try 
-			{
+			try {
 				connectionSocket = serverSocket.accept();
 				final BufferedReader input = 
 					new BufferedReader((new InputStreamReader(connectionSocket.getInputStream())));
 				final DataOutputStream output = 
 					new DataOutputStream(connectionSocket.getOutputStream());
 				threadPool.submit(new HTTPJob(input, output).setHandler(new ORSHandler()));
-			} 
-			catch (IOException e) 
-			{
+			} catch (IOException e) {
 				Log.error("EXCEPTION: IOException occured in server loop. Exception message is: " + e.getMessage());
-			}
-			catch (Exception e)
-			{
+			} catch (Exception e) {
 				Log.error("EXCEPTION: Unexpected error occured in server loop. Exception message is: " + e.getMessage());
 			}
 		}

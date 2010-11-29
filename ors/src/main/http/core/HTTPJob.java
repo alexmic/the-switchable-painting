@@ -10,32 +10,42 @@ import java.io.IOException;
 
 import log.Log;
 
-public class HTTPJob implements Runnable{
-
+/**
+ * New requests are servers in HTTPJobs which are submitted into the threadpool. 
+ * This class is responsible for reading the input, delegating to the parser for
+ * creating a request object, and then writing an HTTP response to the client. 
+ * All exceptions are swallowed and the appropriate error headers and messages are
+ * sent to the client.
+ *  
+ * @author Alex Michael.
+ *
+ */
+public class HTTPJob implements Runnable 
+{
 	private BufferedReader input = null;
 	private DataOutputStream output = null;
 	private HTTPHandler handler = null;
 	
-	public HTTPJob(final BufferedReader input, final DataOutputStream output){
+	public HTTPJob(final BufferedReader input, final DataOutputStream output) 
+	{
 		this.input = input;
 		this.output = output;
 	}
 	
-	public HTTPJob setHandler(HTTPHandler handler){
+	public HTTPJob setHandler(HTTPHandler handler) 
+	{
 		this.handler = handler;
 		return this;
 	}
 	
 	@Override
-	public void run() {
+	public void run() 
+	{
 		try {
 			HTTPRequest request = new HTTPParser(input).getHTTPRequest();
 			String response = "";
-			if (handler != null){
-				System.out.println(request.getMethod());
-				Log.debug("Handler found. Handling request.");
+			if (handler != null) {
 				response = handler.handle(request);
-				System.out.println("a" + response);
 			}
 			Log.debug("Request parsed and handled OK. Setting 200 header and response body.");
 			String header = getHTTPHeader(200);
@@ -49,7 +59,7 @@ public class HTTPJob implements Runnable{
 			handleError("Error parsing request.", 400, output);
 		} catch (HTTPHandleErrorException e) {
 			handleError("Error handling request.", 400, output);
-		} catch (Exception e){
+		} catch (Exception e) {
 			Log.error("EXCEPTION: Unexpected exception occured when handling HTTP request. Exception message is: " + e.getMessage());
 			handleError("Unexpected exception occured when handling HTTP request.", 500, output);
 		}
@@ -59,10 +69,8 @@ public class HTTPJob implements Runnable{
 	 * Handle errors while parsing requests. Errors do not mean exceptions. Writes the header and closes 
 	 * the output stream.
 	 * @param msg
-	 * @param ret_code
-	 * @param request_line
+	 * @param retCode
 	 * @param out
-	 * @throws IOException
 	 */
 	private void handleError(String msg, int retCode, DataOutputStream out)
 	{
@@ -79,8 +87,8 @@ public class HTTPJob implements Runnable{
 	/**
 	 * Construct the HTTP response header. The server only supports application/json as content sent to the client
 	 * since results are most likely going to get handled in Javascript code. 
-	 * @param return_code
-	 * @return
+	 * @param retCode The return code sent to the client.
+	 * @return String The header.
 	 */
 	private String getHTTPHeader(int retCode)
 	{
@@ -108,5 +116,4 @@ public class HTTPJob implements Runnable{
 		response += "\r\n";
 		return response;
 	}
-
 }
