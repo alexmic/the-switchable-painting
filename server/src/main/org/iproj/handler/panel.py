@@ -32,6 +32,7 @@ class UploadPanelHandler(base.BaseHandler):
         except WrongExtensionError, (instance):
             self.log.debug(instance.err_msg)
         except:
+            # Hmm not ideal. Fix it.
             import sys
             print "UNEXPECTED EXCEPTION: ", sys.exc_info()[0]
             raise
