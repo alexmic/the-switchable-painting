@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-import PropertyTestModule
+import PropertyTestModule, UploaderTestModule
 import unittest
 
 def run():
-    MODULES_TO_TEST = [PropertyTestModule]
+    MODULES_TO_TEST = [PropertyTestModule, UploaderTestModule]
     runner = unittest.TextTestRunner()
     loader = unittest.TestLoader()
     for module in MODULES_TO_TEST:

@@ -7,7 +7,8 @@ import os
 import ConfigParser
 import logging
 
-from org.iproj.handler import base, api
+from org.iproj.etc import fn
+from org.iproj.handler import base, api, panel
 
 ########
 # Boot #
@@ -17,7 +18,7 @@ from org.iproj.handler import base, api
 Settings = {
     "static_path": os.path.join("..","..","..","..","assets"),
     "cookie_secret": "exwtriaarxidia",
-    "template_path": os.path.join("web", "templates")
+    "template_path": "templates"
 }
 
 # Configuration parameters
@@ -25,7 +26,9 @@ Config = ConfigParser.ConfigParser(allow_no_value=True)
 
 # Application handlers
 Handlers = [
-    ("/api/", api.ApiHandler)
+    ("/api", api.ApiHandler),
+    ("/panel", panel.MainPanelHandler),
+    ("/panel/upload", panel.UploadPanelHandler)
 ]
 
 class Application(tornado.web.Application):
@@ -41,7 +44,7 @@ class Application(tornado.web.Application):
         
         self.__log_level = LEVELS.get(Config.get(env, "log_level"), logging.NOTSET)
         frm = logging.Formatter("%(asctime)s : %(name)s : %(levelname)s : %(message)s")
-        self.__file_handler = logging.FileHandler(os.path.join("..", "..", "..", "..", "log", Config.get(env, "log_file")))
+        self.__file_handler = logging.FileHandler(os.path.join(fn.find_abs_path("server", __file__), "log", Config.get(env, "log_file")))
         self.__file_handler.setLevel(logging.WARNING)
         self.__file_handler.setFormatter(frm)
         
