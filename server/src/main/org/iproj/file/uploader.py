@@ -59,7 +59,8 @@ class Uploader:
                 if upload:
                     self.upload(file)
             
-    # Check and upload the file.
+    # Upload a file. Should be called only after the file to be uploaded
+    # has passed validation.
     def upload(self, file):
         tokens = file["filename"].split(".")
         ext = tokens[len(tokens) - 1].lower()

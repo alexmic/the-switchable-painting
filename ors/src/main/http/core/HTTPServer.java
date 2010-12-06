@@ -15,15 +15,9 @@ import log.Log;
 
 /**
  * The HTTPServer accepts connections from a server socket and dispatches a thread,
- * to serve the accepted request. It uses a threadpool of 10 threads.
+ * to serve the accepted request. 
  * 
- * LOGGING CONVENTIONS:
- * + Any exception is logged into error.log.
- * + Any error while parsing the request, which does not throw an exception, is logged into warn.log. This is
- *   because errors while parsing the request are considered less harmful (at least to me). It also gives a 
- *   way to distinguish between actual exceptions and request errors.
- * + Any informational messages are logged into info.log.
- * + Any debug message is printed to console and logged into debug.log.
+ * It uses a threadpool of 25 threads * http://httpd.apache.org/docs/2.0/mod/mpm_common.html#threadsperchild *
  * 
  * @author Alex Michael
  *
@@ -57,7 +51,7 @@ public class HTTPServer
 		}
 		
 		//Server loop
-		ExecutorService threadPool = Executors.newFixedThreadPool(10);
+		ExecutorService threadPool = Executors.newFixedThreadPool(25);
 		Log.debug("Server started succesfully.");
 		while (true) {
 			Socket connectionSocket;

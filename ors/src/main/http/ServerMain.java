@@ -1,5 +1,9 @@
 package http;
 
+import java.io.IOException;
+
+import log.DatabaseLogHandler;
+import log.FileLogHandler;
 import log.Log;
 import http.core.HTTPServer;
 
@@ -30,13 +34,22 @@ public class ServerMain
 				}
 			}
 		}
-		if (!Log.init(logLevel)){
-			System.out.println("Unable to initialize logging. Server exiting.");
-			Log.close();
-			return;
-		} else {
+		try {
+			FileLogHandler flh = new FileLogHandler();
+			flh.setLevel(Log.DEBUG);
+			DatabaseLogHandler dlh = new DatabaseLogHandler();
+			dlh.setLevel(Log.INFO);
+			Log.addHandler(flh);
+			Log.addHandler(dlh);
+			Log.setLevel(logLevel);
 			Log.debug("Logs initialized succesfully.");
 			Log.info("Logs initialized succesfully.");
+		} catch (IOException ex) {
+			System.out.println("IOException. Unable to initialize logging. Exception message was: " + ex.getMessage());
+			Log.close();
+		} catch (Exception ex) {
+			System.out.println("Unexpected error. Unable to initialize logging. Exception message was: " + ex.getMessage());
+			Log.close();
 		}
 		
 		// Add a shutdown hook to clean up when terminating with SIGTERM or SIGINT.
