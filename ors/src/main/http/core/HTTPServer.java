@@ -17,7 +17,7 @@ import log.Log;
  * The HTTPServer accepts connections from a server socket and dispatches a thread,
  * to serve the accepted request. 
  * 
- * It uses a threadpool of 25 threads * http://httpd.apache.org/docs/2.0/mod/mpm_common.html#threadsperchild *
+ * It uses a threadpool of 25 threads. * http://httpd.apache.org/docs/2.0/mod/mpm_common.html#threadsperchild *
  * 
  * @author Alex Michael
  *
