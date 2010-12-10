@@ -11,7 +11,7 @@ import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import log.Log;
+import logging.Log;
 
 /**
  * The HTTPServer accepts connections from a server socket and dispatches a thread,

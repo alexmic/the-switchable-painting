@@ -8,7 +8,7 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import log.Log;
+import logging.Log;
 
 /**
  * New requests are servers in HTTPJobs which are submitted into the threadpool. 

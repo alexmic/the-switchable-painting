@@ -2,9 +2,9 @@ package http;
 
 import java.io.IOException;
 
-import log.DatabaseLogHandler;
-import log.FileLogHandler;
-import log.Log;
+import logging.DatabaseLogHandler;
+import logging.FileLogHandler;
+import logging.Log;
 import http.core.HTTPServer;
 
 /**

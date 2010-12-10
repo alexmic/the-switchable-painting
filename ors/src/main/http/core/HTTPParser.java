@@ -6,7 +6,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.HashMap;
 
-import log.Log;
+import logging.Log;
 
 /**
  * Stripped down interpretation of the HTTP protocol. Since the server exposes
