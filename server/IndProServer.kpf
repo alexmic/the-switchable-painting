@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Komodo Project File - DO NOT EDIT -->
 <project id="18ddf392-416b-2c4c-b0fd-2b03b963b1d4" kpf_version="4" name="IndProServer.kpf">
-<file id="1c1a7aee-db39-664e-b6db-c7bf4fd4dc10" idref="18ddf392-416b-2c4c-b0fd-2b03b963b1d4" name="file_events.py" url="file:///Users/alexis/Desktop/Dev/py/dropbox/file_events.py">
-</file>
-<file id="9c157ec0-bb84-5d46-9d3b-17dd35907b4d" idref="18ddf392-416b-2c4c-b0fd-2b03b963b1d4" name="permutations.py" url="file:///Users/alexis/Desktop/Dev/py/permutations.py">
-</file>
 <preference-set idref="18ddf392-416b-2c4c-b0fd-2b03b963b1d4">
   <boolean id="import_live">1</boolean>
 </preference-set>

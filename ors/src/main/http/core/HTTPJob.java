@@ -56,9 +56,9 @@ public class HTTPJob implements Runnable
 			Log.error("EXCEPTION: IOException occured when handling HTTP request. Exception message is: " + e.getMessage());
 			handleError("IOException occured when handling HTTP request.", 500, output);
 		} catch (HTTPParseErrorException e) {
-			handleError("Error parsing request.", 400, output);
+			handleError(e.getMessage(), 400, output);
 		} catch (HTTPHandleErrorException e) {
-			handleError("Error handling request.", 400, output);
+			handleError(e.getMessage(), 400, output);
 		} catch (Exception e) {
 			Log.error("EXCEPTION: Unexpected exception occured when handling HTTP request. Exception message is: " + e.getMessage());
 			handleError("Unexpected exception occured when handling HTTP request.", 500, output);
@@ -111,7 +111,7 @@ public class HTTPJob implements Runnable
 			}
 		}
 		response += "Connection: keep-alive\r\n";
-		response += "Server: AutocompleteServer on localhost\r\n";
+		response += "Server: ORSService on localhost\r\n";
 		response += "Content-Type: application/json\r\n";
 		response += "\r\n";
 		return response;

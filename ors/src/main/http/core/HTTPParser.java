@@ -67,15 +67,16 @@ public class HTTPParser
 					Log.debug("Parsing POST or PUT request.");
 					int contentLength = 0;
 					String temp;
-					while(input.ready()) {
+					while (input.ready()) {
 						temp = input.readLine();
+						System.out.println(temp);
 						if (temp.contains("Content-Length")) {
 							contentLength = Integer.valueOf(temp.split(":")[1].trim());
-							break;
 						}
 					}
 					input.readLine();
 					int i = 0;
+					System.out.println(contentLength);
 					while (i < contentLength) {
 						paramBuffer.append((char) input.read());
 						i++;

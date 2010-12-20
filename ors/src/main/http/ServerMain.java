@@ -2,6 +2,7 @@ package http;
 
 import java.io.IOException;
 
+import logging.ConsoleLogHandler;
 import logging.DatabaseLogHandler;
 import logging.FileLogHandler;
 import logging.Log;
@@ -37,10 +38,10 @@ public class ServerMain
 		try {
 			FileLogHandler flh = new FileLogHandler();
 			flh.setLevel(Log.DEBUG);
-			DatabaseLogHandler dlh = new DatabaseLogHandler();
-			dlh.setLevel(Log.INFO);
+			ConsoleLogHandler clh = new ConsoleLogHandler();
+			clh.setLevel(Log.DEBUG);
 			Log.addHandler(flh);
-			Log.addHandler(dlh);
+			Log.addHandler(clh);
 			Log.setLevel(logLevel);
 			Log.debug("Logs initialized succesfully.");
 			Log.info("Logs initialized succesfully.");

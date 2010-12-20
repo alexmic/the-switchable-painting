@@ -80,8 +80,7 @@ public class FileLogHandler extends BaseLogHandler {
 			error.close();
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}

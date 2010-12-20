@@ -14,6 +14,12 @@ public class ORSHandler implements HTTPHandler {
 
 	@Override
 	public String handle(HTTPRequest request) throws HTTPHandleErrorException {
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return request.toString();
 	}
 
