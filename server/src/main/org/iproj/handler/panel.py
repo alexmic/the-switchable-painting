@@ -19,22 +19,21 @@ class MainPanelHandler(base.BaseHandler):
 
 class UploadPanelHandler(base.BaseHandler):
     
-    def test(self):
-        print "call"
+    def get_chunk(self, **kwargs):
+        junk = "This is some junk to make Safari and Chrome stream the packets. Junk, oh junk, you aaaaareee my juuuuuunkkkkkkkkkkkk.Junk, oh junk, you aaaaareee my juuuuuunkkkkkkkkkkkk.Junk, oh junk, you aaaaareee my juuuuuunkkkkkkkkkkkk.Junk, oh junk, you aaaaareee my juuuuuunkkkkkkkkkkkk."
+        kwargs.update({"junk" : junk})
+        json = json_encode(kwargs)
+        return "<span>" + json + "</span>"
     
     def on_service_response(self, http_response):
-        """ ORSService callback when done. """
+        """ ORSService async callback. """
         # fix error handling   
         if not http_response.code == 200:
             # write error
             return
-        print str(http_response)
-        chunk = "<span>" + \
-                json_encode({"success": True,
-                             "next_msg": "Your painting was uploaded succesfully. :-)",
-                             "last": True,
-                             "junk": "This is some junk to make Safari and Chrome stream the packets. Junk, oh junk, you aaaaareee my juuuuuunkkkkkkkkkkkk.Junk, oh junk, you aaaaareee my juuuuuunkkkkkkkkkkkk.Junk, oh junk, you aaaaareee my juuuuuunkkkkkkkkkkkk.Junk, oh junk, you aaaaareee my juuuuuunkkkkkkkkkkkk."}) + \
-                "</span>"
+        chunk = self.get_chunk(success=True,
+                               next_msg= "Your painting was uploaded succesfully. :-)",
+                               last=True)
         self.write(chunk)
         self.flush()
         self.finish()
@@ -52,12 +51,9 @@ class UploadPanelHandler(base.BaseHandler):
                              "image/svg+xml", "image/tiff"]
         try:
             file = Uploader(self.request).size(614400).extensions(allowed_extensions).mimetypes(allowed_mimetypes).check(upload=True)
-            chunk = "<span>" + \
-                    json_encode({"success": True,
-                                 "next_msg": "Analysing...",
-                                 "last": False,
-                                 "junk": "This is some junk to make Safari and Chrome stream the packets. Junk, oh junk, you aaaaareee my juuuuuunkkkkkkkkkkkk.Junk, oh junk, you aaaaareee my juuuuuunkkkkkkkkkkkk.Junk, oh junk, you aaaaareee my juuuuuunkkkkkkkkkkkk.Junk, oh junk, you aaaaareee my juuuuuunkkkkkkkkkkkk."}) + \
-                    "</span>"
+            chunk = self.get_chunk(success=True,
+                                   next_msg= "Analysing..",
+                                   last=False)
             self.write(chunk)
             self.flush()
             service = ORSService()
@@ -67,19 +63,19 @@ class UploadPanelHandler(base.BaseHandler):
             service.put_painting(id, self.async_callback(self.on_service_response))
         except NullRequestError, (instance):
             self.log.debug(instance.err_msg)
-            self.write("<span>" + json_encode({"success": False, "next_msg": "Empty request received.", "last": True}) + "</span>")
+            self.write(self.get_chunk(success=False, next_msg="Empty request received.", last=True))
             self.finish()
         except SizeLimitExceededError, (instance):
             self.log.debug(instance.err_msg)
-            self.write("<span>" + json_encode({"success": False, "next_msg": "You've exceeded the allowed file limit.", "last": True}) + "</span>")
+            self.write(self.get_chunk(success=False, next_msg="You've exceeded the allowed file limit.",last=True))
             self.finish()
         except WrongMimetypeError, (instance):
             self.log.debug(instance.err_msg)
-            self.write("<span>" + json_encode({"success": False, "next_msg": "Non-permitted mimetype.", "last": True}) + "</span>")
+            self.write(self.get_chunk(success=False, next_msg="Non-permitted mimetype.", last=True))
             self.finish()
         except WrongExtensionError, (instance):
             self.log.debug(instance.err_msg)
-            self.write("<span>" + json_encode({"success": False, "next_msg": "Non-permitted extension.", "last": True}) + "</span>")
+            self.write(self.get_chunk(success=False, next_msg="Non-permitted extension.", last=True))
             self.finish()
         except:
             # Hmm not ideal. Fix it.
