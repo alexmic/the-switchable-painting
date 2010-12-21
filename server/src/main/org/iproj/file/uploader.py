@@ -11,6 +11,7 @@ class Uploader:
     
     def __init__(self, request = None):
         self.__active_validators = []
+        self.uploaded_files = []
         if request == None:
             raise NullRequestError()
         self.__files = request.files
@@ -57,7 +58,9 @@ class Uploader:
                 for validate in self.__active_validators:
                     validate(file)
                 if upload:
-                    self.upload(file)
+                    filename = self.upload(file)
+                    self.uploaded_files.append(filename)
+        return self.uploaded_files
             
     # Upload a file. Should be called only after the file to be uploaded
     # has passed validation.
@@ -67,6 +70,7 @@ class Uploader:
         filename = str(uuid.uuid4()) + "." + ext
         path = self.create_path(filename)
         self.write(file, path)
+        return filename
     
     # Creates and returns path from filename. The images are evenly distributed by deriving
     # the path from the filename:

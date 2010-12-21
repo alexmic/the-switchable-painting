@@ -20,6 +20,7 @@ import logging.Log;
 public class HTTPParser 
 {
 	private BufferedReader input;
+	private final String CRLF="\r\n";
 	
 	public HTTPParser(BufferedReader input)
 	{
@@ -41,7 +42,12 @@ public class HTTPParser
 	private HTTPRequest _parse(BufferedReader input) throws IOException, HTTPParseErrorException
 	{
 		HTTPRequest request = new HTTPRequest();
-		String requestLine = input.readLine();
+		StringBuffer requestBuffer = new StringBuffer();
+		while (input.ready()) {
+			requestBuffer.append((char) input.read());
+		}
+		int currentIndex = requestBuffer.indexOf(CRLF);
+		String requestLine = requestBuffer.substring(0, currentIndex);
 		String[] requestLineTokens = requestLine.split("\\s");
 		Log.debug("Parsing HTTP request. Request line is: " + requestLine);
 		
@@ -65,22 +71,20 @@ public class HTTPParser
 						paramBuffer.append(tokens[1]);
 				} else {
 					Log.debug("Parsing POST or PUT request.");
-					int contentLength = 0;
 					String temp;
-					while (input.ready()) {
-						temp = input.readLine();
-						System.out.println(temp);
-						if (temp.contains("Content-Length")) {
-							contentLength = Integer.valueOf(temp.split(":")[1].trim());
+					int nextIndex = -1;
+					while (true){
+						currentIndex +=2;
+						nextIndex = requestBuffer.indexOf(CRLF, currentIndex); 
+						temp = requestBuffer.substring(
+								currentIndex, 
+								nextIndex);
+						currentIndex = nextIndex;
+						if (temp.equals("")) {
+							break;
 						}
 					}
-					input.readLine();
-					int i = 0;
-					System.out.println(contentLength);
-					while (i < contentLength) {
-						paramBuffer.append((char) input.read());
-						i++;
-					}
+					paramBuffer.append(requestBuffer.substring(currentIndex+2));
 				}
 				
 				HashMap<String, String> params = new HashMap<String, String>();

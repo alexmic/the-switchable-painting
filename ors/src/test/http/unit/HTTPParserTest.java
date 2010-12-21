@@ -14,7 +14,7 @@ import org.junit.Test;
 public class HTTPParserTest {
 
 	private HTTPParser parser;
-	
+	private final String CRLF= "\r\n";
 	private String constructRequest(String method, 
 								    boolean okRequestLine, 
 								    boolean okParameters)
@@ -24,20 +24,20 @@ public class HTTPParserTest {
 		if (okRequestLine) {
 			request.append(method);
 			if ((method.equals("GET") || method.equals("DELETE")) && okParameters) {
-				request.append(" /test?p1=2&p2=3 HTTP/1.1\n");
+				request.append(" /test?p1=2&p2=3 HTTP/1.1" + CRLF);
 			} else if ((method.equals("GET") || method.equals("DELETE")) && !okParameters) {
-				request.append(" /test?p1=2&p23 HTTP/1.1\n");
-			} else if (method.equals("POST") || method.equals("PUT")) {
-				request.append(" /test HTTP/1.1\n");
+				request.append(" /test?p1=2&p23 HTTP/1.1" + CRLF);
+			} else {
+				request.append(" /test HTTP/1.1" + CRLF);
 			}
 		} else {
 			request.append(method);
-			request.append("BADNOSPACEfffjf HTTP/2222\n");
+			request.append("BADNOSPACEfffjf HTTP/2222" + CRLF);
 		}
 		
 		if (method.equals("POST") || method.equals("PUT")) {
-			request.append("Content-Length: 9\n");
-			request.append("\n");
+			request.append("Content-Length: 9" + CRLF);
+			request.append(CRLF);
 			if (okParameters)
 				request.append("p1=2&p2=3");
 			else
@@ -108,22 +108,14 @@ public class HTTPParserTest {
 	public void testBadHTTPMethod() throws IOException, HTTPParseErrorException
 	{
 		BufferedReader in = new BufferedReader(new CharArrayReader(constructRequest("POSTING", true, true).toCharArray()));
-		parser = new HTTPParser(in);
-		HTTPRequest request = parser.getHTTPRequest();
-		assertEquals(request.getMethod(), "POST");
-		assertEquals(request.getParams().get("p1"), "2");
-		assertEquals(request.getParams().get("p2"), "3");
+		new HTTPParser(in).getHTTPRequest();
 	}
 	
 	@Test(expected=HTTPParseErrorException.class)
 	public void testBadHTTPRequestLine() throws IOException, HTTPParseErrorException
 	{
 		BufferedReader in = new BufferedReader(new CharArrayReader(constructRequest("POST", false, true).toCharArray()));
-		parser = new HTTPParser(in);
-		HTTPRequest request = parser.getHTTPRequest();
-		assertEquals(request.getMethod(), "POST");
-		assertEquals(request.getParams().get("p1"), "2");
-		assertEquals(request.getParams().get("p2"), "3");
+		new HTTPParser(in).getHTTPRequest();
 	}
 	
 	@Test(expected=HTTPParseErrorException.class)

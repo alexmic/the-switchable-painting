@@ -3,20 +3,26 @@ import time
 import tornado.httpclient
 import tornado.httputil
 
-class ORSService():
+class ORSService:
     
     def __init__(self):
         self.base_uri = "http://localhost:4444/api/"
     
-    def painting_put(self, id, cback):
+    def put_painting(self, id, cback):
         self.__do(self.__get_request(uri="painting", method="PUT", params={"id" : id}), cback)
     
-    def painting_get(self, id, cback):
+    def get_painting(self, id, cback):
         self.__do(self.__get_request(uri="painting", method="GET", params={"id" : id}), cback)
     
-    def painting_delete(self, id, cback):
-        self.__do(self.__get_request(uri="painting", method="DELETE", params={"id" : id}), cback)
-        
+    def get_associations(self, id, cback):
+        self.__do(self.__get_request(uri="collection", method="GET", params={"id" : id}), cback)
+    
+    def add_association(self, id, new_assoc_id, cback):
+        self.__do(self.__get_request(uri="collection", method="POST", params={"id" : id, "na_id" : id}), cback)
+    
+    def get_match(self, id, feature_vectors, cback):
+        self.__do(self.__get_request(uri="match", method="POST", params={"id" : id, "fvectors" : feature_vectors}), cback)
+
     def __do(self, http_request, cback):
         http = tornado.httpclient.AsyncHTTPClient()
         http.fetch(http_request, callback=cback)
@@ -27,7 +33,7 @@ class ORSService():
         uri = uri or ""
         params = params or {}
         body = self.__get_request_body(params)
-        headers = self.__get_request_headers(body)
+        #headers = self.__get_request_headers(body) -> created by HTTPRequest
         return tornado.httpclient.HTTPRequest(
                            self.base_uri + uri,
                            method=method,

@@ -96,29 +96,36 @@ var Uploader = function(f) {
             form.append(frame);
         }
         form.submit();
-        window.setTimeout(poll, 500);
-    }
+        window.setTimeout(poll, 100);
+    };
+    
+    this.reset = function() {
+        frame.contents().empty();
+        this.progressBar.reset();
+        POLL_INDEX = 0;
+    };
     
     var poll = function() {
-        var response = frame.contents().find("body").html();
-        alert(response);
-        if (response === "") {
-            window.setTimeout(poll, 500);
+        var chunks = frame.contents().find("body span");
+        if (chunks[0] === null || chunks.length === POLL_INDEX) {
+            window.setTimeout(poll, 100);
             return;
         }
-        var jsonResponse = $.parseJSON(response);
+        var currentChunk = chunks[POLL_INDEX];
+        POLL_INDEX++;
+        var jsonResponse = $.parseJSON($(currentChunk).html());
         if (jsonResponse.success) {
             if (jsonResponse.last) {
-                that.progressBar.status("success");
+                _formUploader_.progressBar.status("ok");
                  $("#upload-success-controls").show();
             }
         } else {
-            that.progressBar.status("fail");
+            _formUploader_.progressBar.status("fail");
             $("#upload-fail-controls").show();
         }
-        that.progressBar.text(jsonResponse.next_msg);
+        _formUploader_.progressBar.text(jsonResponse.next_msg);
         if (!jsonResponse.last) {
-            window.setTimeout(poll, 500);
+            window.setTimeout(poll, 100);
         }
     };
     
@@ -141,12 +148,12 @@ var Uploader = function(f) {
             }
         },
         status: function(klass) {
-            this.elem.removeClass("success fail");
+            this.elem.removeClass("ok fail");
             this.elem.addClass(klass);
             return this;
         },
         reset: function() {
-            this.elem.removeClass("success fail");            
+            this.elem.removeClass("ok fail");            
             this.text("Uploading your painting..");
         }
     };
@@ -158,6 +165,7 @@ var Uploader = function(f) {
         $this.attr("target", frame.attr("name")); 
     });
    
+   var POLL_INDEX = 0;
 }
 
 /*******************
@@ -200,13 +208,13 @@ var DOM = new function() {
         $("#upload-another-painting-btn").click(function(){
             $("#upload-bar").fadeOut(100);
             DOM.transition($("#upload-success-controls"), $("#upload-controls"));
-            _formUploader_.progressBar.reset();
+            _formUploader_.reset();
         });
 
         $("#upload-fail-painting-btn").click(function(){
             $("#upload-bar").fadeOut(100);
             DOM.transition($("#upload-fail-controls"), $("#upload-controls"));
-            _formUploader_.progressBar.reset();
+            _formUploader_.reset();
         });        
     };    
     

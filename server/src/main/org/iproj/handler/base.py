@@ -31,10 +31,7 @@ class BaseHandler(tornado.web.RequestHandler):
     def __is_auth(self, callback, *args, **kwargs):
         """ Checks if the user is authenticated and then calls the passed callback. """
         def is_auth():
-            # check if site is registered and cookie is present.
-            # then check if user cookie is present, otherwise
-            # redirect to login.
-            # For the switchable painting, we don't need any authentication of course.
+            # For the switchable painting prototype, we don't need any authentication.
             return True
             
         if is_auth():
