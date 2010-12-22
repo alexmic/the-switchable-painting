@@ -6,8 +6,10 @@ import http.core.HttpRequest;
 import http.exception.HTTPParseErrorException;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.CharArrayReader;
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.junit.Test;
 
@@ -49,45 +51,45 @@ public class HttpParserTest {
 	@Test
 	public void testOKGETRequest() throws IOException, HTTPParseErrorException
 	{
-		BufferedReader in = new BufferedReader(new CharArrayReader(constructRequest("GET", true, true).toCharArray()));
+		InputStream in = new ByteArrayInputStream(constructRequest("GET", true, true).getBytes("UTF-8"));		
 		parser = new HttpParser(in);
-		HttpRequest request = parser.getHTTPRequest();
+		HttpRequest request = parser.getHttpRequest();
 		assertEquals(request.getMethod(), "GET");
 	}
 	
 	@Test
 	public void testOKPUTRequest() throws IOException, HTTPParseErrorException
 	{
-		BufferedReader in = new BufferedReader(new CharArrayReader(constructRequest("PUT", true, true).toCharArray()));
+		InputStream in = new ByteArrayInputStream(constructRequest("PUT", true, true).getBytes("UTF-8"));		
 		parser = new HttpParser(in);
-		HttpRequest request = parser.getHTTPRequest();
+		HttpRequest request = parser.getHttpRequest();
 		assertEquals(request.getMethod(), "PUT");
 	}
 	
 	@Test
 	public void testOKPOSTRequest() throws IOException, HTTPParseErrorException
 	{
-		BufferedReader in = new BufferedReader(new CharArrayReader(constructRequest("POST", true, true).toCharArray()));
+		InputStream in = new ByteArrayInputStream(constructRequest("POST", true, true).getBytes("UTF-8"));		
 		parser = new HttpParser(in);
-		HttpRequest request = parser.getHTTPRequest();
+		HttpRequest request = parser.getHttpRequest();
 		assertEquals(request.getMethod(), "POST");
 	}
 	
 	@Test
 	public void testOKDELETERequest() throws IOException, HTTPParseErrorException
 	{
-		BufferedReader in = new BufferedReader(new CharArrayReader(constructRequest("DELETE", true, true).toCharArray()));
+		InputStream in = new ByteArrayInputStream(constructRequest("DELETE", true, true).getBytes("UTF-8"));		
 		parser = new HttpParser(in);
-		HttpRequest request = parser.getHTTPRequest();
+		HttpRequest request = parser.getHttpRequest();
 		assertEquals(request.getMethod(), "DELETE");
 	}
 	
 	@Test
 	public void testOKGETParameterParse() throws IOException, HTTPParseErrorException
 	{
-		BufferedReader in = new BufferedReader(new CharArrayReader(constructRequest("GET", true, true).toCharArray()));
+		InputStream in = new ByteArrayInputStream(constructRequest("GET", true, true).getBytes("UTF-8"));		
 		parser = new HttpParser(in);
-		HttpRequest request = parser.getHTTPRequest();
+		HttpRequest request = parser.getHttpRequest();
 		assertEquals(request.getMethod(), "GET");
 		assertEquals(request.getParams().get("p1"), "2");
 		assertEquals(request.getParams().get("p2"), "3");
@@ -96,9 +98,9 @@ public class HttpParserTest {
 	@Test
 	public void testOKPOSTParameterParse() throws IOException, HTTPParseErrorException
 	{
-		BufferedReader in = new BufferedReader(new CharArrayReader(constructRequest("POST", true, true).toCharArray()));
+		InputStream in = new ByteArrayInputStream(constructRequest("POST", true, true).getBytes("UTF-8"));		
 		parser = new HttpParser(in);
-		HttpRequest request = parser.getHTTPRequest();
+		HttpRequest request = parser.getHttpRequest();
 		assertEquals(request.getMethod(), "POST");
 		assertEquals(request.getParams().get("p1"), "2");
 		assertEquals(request.getParams().get("p2"), "3");
@@ -107,27 +109,25 @@ public class HttpParserTest {
 	@Test(expected=HTTPParseErrorException.class)
 	public void testBadHTTPMethod() throws IOException, HTTPParseErrorException
 	{
-		BufferedReader in = new BufferedReader(new CharArrayReader(constructRequest("POSTING", true, true).toCharArray()));
-		new HttpParser(in).getHTTPRequest();
+		InputStream in = new ByteArrayInputStream(constructRequest("POSTING", true, true).getBytes("UTF-8"));		
+		new HttpParser(in).getHttpRequest();
 	}
 	
 	@Test(expected=HTTPParseErrorException.class)
 	public void testBadHTTPRequestLine() throws IOException, HTTPParseErrorException
 	{
-		BufferedReader in = new BufferedReader(new CharArrayReader(constructRequest("POST", false, true).toCharArray()));
-		new HttpParser(in).getHTTPRequest();
+		InputStream in = new ByteArrayInputStream(constructRequest("POST", false, true).getBytes("UTF-8"));		
+		new HttpParser(in).getHttpRequest();
 	}
 	
 	@Test(expected=HTTPParseErrorException.class)
 	public void testBadHTTPParameters() throws IOException, HTTPParseErrorException
 	{
-		BufferedReader in = new BufferedReader(new CharArrayReader(constructRequest("POST", true, false).toCharArray()));
+		InputStream in = new ByteArrayInputStream(constructRequest("POST", true, false).getBytes("UTF-8"));		
 		parser = new HttpParser(in);
-		HttpRequest request = parser.getHTTPRequest();
+		HttpRequest request = parser.getHttpRequest();
 		assertEquals(request.getMethod(), "POST");
 		assertEquals(request.getParams().get("p1"), "2");
 		assertEquals(request.getParams().get("p2"), "3");
 	}
-	
-	
 }

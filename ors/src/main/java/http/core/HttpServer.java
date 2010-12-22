@@ -55,11 +55,7 @@ public class HttpServer
 			Socket connectionSocket;
 			try {
 				connectionSocket = serverSocket.accept();
-				final BufferedReader input = 
-					new BufferedReader((new InputStreamReader(connectionSocket.getInputStream())));
-				final DataOutputStream output = 
-					new DataOutputStream(connectionSocket.getOutputStream());
-				threadPool.submit(new HttpJob(input, output));
+				threadPool.submit(new HttpJob(connectionSocket));
 			} catch (IOException e) {
 				Log.error("EXCEPTION: IOException occured in server loop. Exception message is: " + e.getMessage());
 			} catch (Exception e) {

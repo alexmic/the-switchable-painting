@@ -4,6 +4,8 @@ import http.exception.HTTPParseErrorException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 
 import logging.Log;
@@ -19,15 +21,15 @@ import logging.Log;
  */
 public class HttpParser 
 {
-	private BufferedReader input;
+	private InputStream input;
 	private final String CRLF= "\r" + System.getProperty("line.separator");
 	
-	public HttpParser(BufferedReader input)
+	public HttpParser(InputStream input)
 	{
 		this.input = input;
 	}
 	
-	public HttpRequest getHTTPRequest() throws IOException, HTTPParseErrorException
+	public HttpRequest getHttpRequest() throws IOException, HTTPParseErrorException
 	{
 		return _parse(this.input);
 	}
@@ -39,13 +41,26 @@ public class HttpParser
 	 * @throws IOException, HTTPParseErrorException
 	 * @return HTTPRequest A populated request object.
 	 */
-	private HttpRequest _parse(BufferedReader input) throws IOException, HTTPParseErrorException
+	private HttpRequest _parse(InputStream input) throws IOException, HTTPParseErrorException
 	{
 		HttpRequest request = new HttpRequest();
 		StringBuffer requestBuffer = new StringBuffer();
-		while (input.ready()) {
-			requestBuffer.append((char) input.read());
+		BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+		
+		String line;
+		int contentLength = 0;
+		while ((line = reader.readLine()) != null) {
+			requestBuffer.append(line + CRLF);
+			if (line.contains("Content-Length")) {
+				contentLength = Integer.valueOf(line.split("\\s" )[1]);
+			}
+			if (line.equals("")) break;
 		}
+		
+		char[] body = new char[contentLength];
+		reader.read(body);
+		requestBuffer.append(body);
+
 		int currentIndex = requestBuffer.indexOf(CRLF);
 		if (currentIndex < 0)
 			throw new HTTPParseErrorException("Error in HTTP Request-line format.");

@@ -10,7 +10,7 @@ public class ServerStressTest {
 	public static void main(String[] args) 
 	{
 		ServerStressTest test = new ServerStressTest();
-		test.concurrentUsers(100);
+		test.concurrentUsers(300);
 	}
 	
 	private void concurrentUsers(int users) 
@@ -26,24 +26,25 @@ public class ServerStressTest {
 		public void run() {
 			URL url = null;
 			try {
-				url = new URL("http://localhost:4444");
+				url = new URL("http://localhost:4444/painting");
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 			}
 			long start   = System.currentTimeMillis();
 			long finish  = start;
 			int requests = 0;
+			int errors = 0;
 			while(finish - start < 1000) {
 				try {
 					((HttpURLConnection) url.openConnection()).getContent();
-				} catch (IOException e) {
-					e.printStackTrace();
+				} catch (Exception e) {
+					errors += 1;
 				}
 				finish = System.currentTimeMillis();
 				requests++;
 			}
 			start = finish;
-			System.out.println("User done. Requests per second: " + requests);
+			System.out.println("User done. Requests per second: " + requests +". Errors encountered: " + errors);
 		}
 	}
 }

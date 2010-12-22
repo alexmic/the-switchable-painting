@@ -20,7 +20,7 @@ public class HttpDispatcher {
 		if (request == null)
 			throw new HTTPHandleErrorException("Received null HTTP request.");
 		String[] tokens = request.getURI().split("/");
-		if (tokens.length != 2) 
+		if (tokens.length < 2) 
 			throw new HTTPHandleErrorException("URI format received is wrong. URIs should be of the format /<handler>.");
 		/* If a need to use reflection arises i.e if the 
 		 * exposed interface becomes big enough (more that the
@@ -28,11 +28,12 @@ public class HttpDispatcher {
 		 * will be replaced. For now it does it's job.
 		 */
 		String handler = tokens[1];
-		if (handler.equals("painting")) {
+		String baseURL = handler.split("\\?")[0];
+		if (baseURL.equals("painting")) {
 			return routeMethod(new PaintingHandler(), request);
-		} else if (handler.equals("match")) {
+		} else if (baseURL.equals("match")) {
 			return routeMethod(new MatchHandler(), request);
-		} else if (handler.equals("collection")) {
+		} else if (baseURL.equals("collection")) {
 			return routeMethod(new CollectionHandler(), request);
 		} else {
 			throw new HTTPHandleErrorException("Handler not recognized.");

@@ -1,6 +1,8 @@
 package http.benchmark;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -31,12 +33,15 @@ public class ServerBenchmark {
 			while(finish - start < 1000) {
 				HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 				conn.setRequestMethod("PUT");
+				conn.setDoInput(true);
 				conn.setDoOutput(true);
 				OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
-				writer.write("q=" + finish);
+				writer.write("q=" + finish + "\r\n");
 				writer.flush();
-				conn.getContent();
+				BufferedReader is = new BufferedReader((new InputStreamReader(conn.getInputStream())));
 				finish = System.currentTimeMillis();
+				int ret = 0;
+				while ((ret = is.read()) > 0) {;}
 				requests++;
 			}
 			System.out.println();
