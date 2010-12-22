@@ -1,0 +1,216 @@
+Found a 8 line (78 tokens) duplication in the following files: 
+Starting at line 35 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/log/LoggerTest.java
+Starting at line 54 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/log/LoggerTest.java
+
+		Log.setLevel(Log.WARNING);
+		expect(errorHandler.getLevel()).andReturn(Log.ERROR);
+		errorHandler.write("Error", Log.ERROR);
+		expect(warningHandler.getLevel()).andReturn(Log.WARNING);
+		warningHandler.write("Error", Log.ERROR);
+		expect(infoHandler.getLevel()).andReturn(Log.INFO);
+		infoHandler.write("Error", Log.ERROR);
+		expect(infoHandler.getLevel()).andReturn(Log.DEBUG);
+=====================================================================
+Found a 27 line (76 tokens) duplication in the following files: 
+Starting at line 7 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/main/java/http/core/handler/ors/MatchHandler.java
+Starting at line 7 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/main/java/http/core/handler/ors/CollectionHandler.java
+
+public class CollectionHandler implements Handler {
+
+	@Override
+	public String get(Map<String, String> requestParams) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String post(Map<String, String> requestParams) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String put(Map<String, String> requestParams) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String delete(Map<String, String> requestParams) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+}
+=====================================================================
+Found a 7 line (63 tokens) duplication in the following files: 
+Starting at line 99 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/http/HttpParserTest.java
+Starting at line 130 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/http/HttpParserTest.java
+
+		InputStream in = new ByteArrayInputStream(constructRequest("POST", true, false).getBytes("UTF-8"));		
+		parser = new HttpParser(in);
+		HttpRequest request = parser.getHttpRequest();
+		assertEquals(request.getMethod(), "POST");
+		assertEquals(request.getParams().get("p1"), "2");
+		assertEquals(request.getParams().get("p2"), "3");
+	}
+=====================================================================
+Found a 6 line (52 tokens) duplication in the following files: 
+Starting at line 68 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/http/HttpParserTest.java
+Starting at line 97 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/http/HttpParserTest.java
+
+	public void testOKPOSTParameterParse() throws IOException, HttpParseErrorException
+	{
+		InputStream in = new ByteArrayInputStream(constructRequest("POST", true, true).getBytes("UTF-8"));		
+		parser = new HttpParser(in);
+		HttpRequest request = parser.getHttpRequest();
+		assertEquals(request.getMethod(), "POST");
+=====================================================================
+Found a 6 line (52 tokens) duplication in the following files: 
+Starting at line 50 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/http/HttpParserTest.java
+Starting at line 86 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/http/HttpParserTest.java
+
+	public void testOKGETParameterParse() throws IOException, HttpParseErrorException
+	{
+		InputStream in = new ByteArrayInputStream(constructRequest("GET", true, true).getBytes("UTF-8"));		
+		parser = new HttpParser(in);
+		HttpRequest request = parser.getHttpRequest();
+		assertEquals(request.getMethod(), "GET");
+=====================================================================
+Found a 11 line (49 tokens) duplication in the following files: 
+Starting at line 42 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/log/LoggerTest.java
+Starting at line 61 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/log/LoggerTest.java
+
+		expect(infoHandler.getLevel()).andReturn(Log.DEBUG);
+		debugHandler.write("Error", Log.ERROR);
+		replay(errorHandler);
+		replay(warningHandler);
+		replay(infoHandler);
+		replay(debugHandler);
+		Log.error("Error");
+	}
+	
+	@Test
+	public void testLoggerFiltering2()
+=====================================================================
+Found a 11 line (42 tokens) duplication in the following files: 
+Starting at line 76 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/http/HttpDispatcherTest.java
+Starting at line 136 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/http/HttpDispatcherTest.java
+
+	public void testExistingMethodDispatch() throws HttpHandleErrorException
+	{
+		assertEquals(dispatcher.route(
+				new HttpRequest()
+					.setMethod("GET")
+					.setURI("/niceRoute?p=1")
+				),
+				"niceget");
+		assertEquals(dispatcher.route(
+				new HttpRequest()
+					.setMethod("PUT")
+=====================================================================
+Found a 9 line (37 tokens) duplication in the following files: 
+Starting at line 95 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/http/HttpDispatcherTest.java
+Starting at line 150 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/http/HttpDispatcherTest.java
+
+		assertEquals(dispatcher.route(
+				new HttpRequest()
+					.setMethod("POST")
+					.setURI("/niceRoute")
+				),
+				"nicepost");
+		assertEquals(dispatcher.route(
+				new HttpRequest()
+					.setMethod("DELETE")
+=====================================================================
+Found a 6 line (34 tokens) duplication in the following files: 
+Starting at line 91 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/http/HttpParserTest.java
+Starting at line 102 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/http/HttpParserTest.java
+
+		assertEquals(request.getMethod(), "POST");
+		assertEquals(request.getParams().get("p1"), "2");
+		assertEquals(request.getParams().get("p2"), "3");
+	}
+	
+	@Test(expected=HttpParseErrorException.class)
+=====================================================================
+Found a 4 line (34 tokens) duplication in the following files: 
+Starting at line 52 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/http/HttpParserTest.java
+Starting at line 61 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/http/HttpParserTest.java
+Starting at line 70 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/http/HttpParserTest.java
+Starting at line 79 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/http/HttpParserTest.java
+
+		InputStream in = new ByteArrayInputStream(constructRequest("DELETE", true, true).getBytes("UTF-8"));		
+		parser = new HttpParser(in);
+		HttpRequest request = parser.getHttpRequest();
+		assertEquals(request.getMethod(), "DELETE");
+=====================================================================
+Found a 4 line (32 tokens) duplication in the following files: 
+Starting at line 70 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/http/HttpParserTest.java
+Starting at line 130 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/http/HttpParserTest.java
+
+		InputStream in = new ByteArrayInputStream(constructRequest("POST", true, false).getBytes("UTF-8"));		
+		parser = new HttpParser(in);
+		HttpRequest request = parser.getHttpRequest();
+		assertEquals(request.getMethod(), "POST");
+=====================================================================
+Found a 4 line (30 tokens) duplication in the following files: 
+Starting at line 65 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/main/java/http/core/HttpJob.java
+Starting at line 68 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/main/java/http/core/HttpJob.java
+
+		} catch (HttpHandleErrorException e) {
+			Log.warning("REQUEST ERROR: " + e.getMessage());
+			sendError(e.getMessage(), 400, output);
+		} catch (Exception e) {
+=====================================================================
+Found a 6 line (30 tokens) duplication in the following files: 
+Starting at line 110 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/http/HttpParserTest.java
+Starting at line 117 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/http/HttpParserTest.java
+
+		InputStream in = new ByteArrayInputStream(constructRequest("POST", false, true).getBytes("UTF-8"));		
+		new HttpParser(in).getHttpRequest();
+	}
+	
+	@Test(expected=HttpParseErrorException.class)
+	public void testNullInputStream() throws IOException, HttpParseErrorException
+=====================================================================
+Found a 4 line (30 tokens) duplication in the following files: 
+Starting at line 52 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/http/HttpParserTest.java
+Starting at line 130 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/http/HttpParserTest.java
+
+		InputStream in = new ByteArrayInputStream(constructRequest("POST", true, false).getBytes("UTF-8"));		
+		parser = new HttpParser(in);
+		HttpRequest request = parser.getHttpRequest();
+		assertEquals(request.getMethod(), "POST");
+=====================================================================
+Found a 4 line (29 tokens) duplication in the following files: 
+Starting at line 54 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/main/java/http/core/HttpJob.java
+Starting at line 87 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/main/java/http/core/HttpJob.java
+
+			byte[] headerBytes = getHTTPHeader(retCode, msg).getBytes();
+			for (int i = 0; i < headerBytes.length; i++) {
+ 				output.write(headerBytes[i]); 				
+ 			}
+=====================================================================
+Found a 7 line (28 tokens) duplication in the following files: 
+Starting at line 68 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/main/java/logging/handler/base/FileLogHandler.java
+Starting at line 82 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/main/java/logging/handler/base/FileLogHandler.java
+
+			error.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+=====================================================================
+Found a 6 line (27 tokens) duplication in the following files: 
+Starting at line 43 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/log/LoggerTest.java
+Starting at line 79 of /Users/alexis/Desktop/Dev/IndividualProject/ors/src/test/java/log/LoggerTest.java
+
+		warningHandler.write("Error", Log.ERROR);
+		replay(errorHandler);
+		replay(warningHandler);
+		replay(infoHandler);
+		replay(debugHandler);
+		Log.info("Error");
