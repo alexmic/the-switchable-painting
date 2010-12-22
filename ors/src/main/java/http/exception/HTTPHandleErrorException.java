@@ -1,10 +1,10 @@
 package http.exception;
 
-public class HTTPHandleErrorException extends Exception {
+public class HttpHandleErrorException extends Exception {
 
 	private static final long serialVersionUID = 1L;
 
-	public HTTPHandleErrorException(String message){
+	public HttpHandleErrorException(String message){
 		super(message);
 	}
 	

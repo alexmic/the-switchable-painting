@@ -1,6 +1,6 @@
 package http.core;
 
-import http.exception.HTTPParseErrorException;
+import http.exception.HttpParseErrorException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -22,14 +22,15 @@ import logging.Log;
 public class HttpParser 
 {
 	private InputStream input;
-	private final String CRLF= "\r" + System.getProperty("line.separator");
+	private final String CRLF= "\r\n";
 	
-	public HttpParser(InputStream input)
+	public HttpParser(InputStream input) throws HttpParseErrorException
 	{
+		if (input == null) throw new HttpParseErrorException("Inputstream was null");
 		this.input = input;
 	}
 	
-	public HttpRequest getHttpRequest() throws IOException, HTTPParseErrorException
+	public HttpRequest getHttpRequest() throws IOException, HttpParseErrorException
 	{
 		return _parse(this.input);
 	}
@@ -41,7 +42,7 @@ public class HttpParser
 	 * @throws IOException, HTTPParseErrorException
 	 * @return HTTPRequest A populated request object.
 	 */
-	private HttpRequest _parse(InputStream input) throws IOException, HTTPParseErrorException
+	private HttpRequest _parse(InputStream input) throws IOException, HttpParseErrorException
 	{
 		HttpRequest request = new HttpRequest();
 		StringBuffer requestBuffer = new StringBuffer();
@@ -63,7 +64,7 @@ public class HttpParser
 
 		int currentIndex = requestBuffer.indexOf(CRLF);
 		if (currentIndex < 0)
-			throw new HTTPParseErrorException("Error in HTTP Request-line format.");
+			throw new HttpParseErrorException("Error in HTTP Request-line format.");
 		String requestLine = requestBuffer.substring(0, currentIndex);
 		String[] requestLineTokens = requestLine.split("\\s");
 		Log.debug("Parsing HTTP request. Request line is: " + requestLine);
@@ -112,17 +113,17 @@ public class HttpParser
 						if (subTokens.length == 2) {
 							params.put(subTokens[0], subTokens[1]);
 						} else {
-							throw new HTTPParseErrorException("Error in HTTP request parameters format.");
+							throw new HttpParseErrorException("Error in HTTP request parameters format.");
 						}
 					}
 				}
 				request.setParams(params);
 				return request;
 			} else {
-				throw new HTTPParseErrorException("HTTP method not recognized.");
+				throw new HttpParseErrorException("HTTP method not recognized.");
 			}
 		} else {
-			throw new HTTPParseErrorException("Error in HTTP Request-line format.");
+			throw new HttpParseErrorException("Error in HTTP Request-line format.");
 		}
 	}
 }

@@ -1,4 +1,7 @@
-package logging;
+package logging.handler.base;
+
+import logging.Log;
+import logging.handler.LogHandler;
 
 public abstract class BaseLogHandler implements LogHandler {
 
@@ -13,7 +16,7 @@ public abstract class BaseLogHandler implements LogHandler {
 		this.level = level;
 	}
 
-	public int level() {
+	public int getLevel() {
 		return this.level;
 	}
 

@@ -1,4 +1,5 @@
-package logging;
+package logging.handler.base;
+
 
 public class ConsoleLogHandler extends BaseLogHandler{
 

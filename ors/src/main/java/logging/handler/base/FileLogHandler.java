@@ -1,10 +1,12 @@
-package logging;
+package logging.handler.base;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Date;
+
+import logging.Log;
 
 public class FileLogHandler extends BaseLogHandler {
 	

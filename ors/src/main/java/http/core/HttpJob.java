@@ -1,7 +1,10 @@
 package http.core;
 
-import http.exception.HTTPHandleErrorException;
-import http.exception.HTTPParseErrorException;
+import http.core.handler.ors.CollectionHandler;
+import http.core.handler.ors.MatchHandler;
+import http.core.handler.ors.PaintingHandler;
+import http.exception.HttpHandleErrorException;
+import http.exception.HttpParseErrorException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,6 +37,9 @@ public class HttpJob implements Runnable
 		this.input  = connectionSocket.getInputStream();
 		this.output = connectionSocket.getOutputStream();
 		dispatcher  = new HttpDispatcher();
+		dispatcher.addRoute("painting", new PaintingHandler())
+				  .addRoute("match", new MatchHandler())
+				  .addRoute("collection", new CollectionHandler());
 	}
 	
 	@Override
@@ -56,10 +62,10 @@ public class HttpJob implements Runnable
 		} catch (IOException e) {
 			Log.error("EXCEPTION: IOException occured when handling HTTP request. Exception message is: " + e.getMessage());
 			sendError("IOException occured when handling HTTP request.", 500, output);
-		} catch (HTTPParseErrorException e) {
+		} catch (HttpParseErrorException e) {
 			Log.warning("REQUEST ERROR: " + e.getMessage());
 			sendError(e.getMessage(), 400, output);
-		} catch (HTTPHandleErrorException e) {
+		} catch (HttpHandleErrorException e) {
 			Log.warning("REQUEST ERROR: " + e.getMessage());
 			sendError(e.getMessage(), 400, output);
 		} catch (Exception e) {

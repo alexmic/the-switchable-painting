@@ -1,13 +1,11 @@
-package http.unit;
+package http;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import http.core.HttpParser;
 import http.core.HttpRequest;
-import http.exception.HTTPParseErrorException;
+import http.exception.HttpParseErrorException;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.CharArrayReader;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -49,7 +47,7 @@ public class HttpParserTest {
 	}
 	
 	@Test
-	public void testOKGETRequest() throws IOException, HTTPParseErrorException
+	public void testOKGETRequest() throws IOException, HttpParseErrorException
 	{
 		InputStream in = new ByteArrayInputStream(constructRequest("GET", true, true).getBytes("UTF-8"));		
 		parser = new HttpParser(in);
@@ -58,7 +56,7 @@ public class HttpParserTest {
 	}
 	
 	@Test
-	public void testOKPUTRequest() throws IOException, HTTPParseErrorException
+	public void testOKPUTRequest() throws IOException, HttpParseErrorException
 	{
 		InputStream in = new ByteArrayInputStream(constructRequest("PUT", true, true).getBytes("UTF-8"));		
 		parser = new HttpParser(in);
@@ -67,7 +65,7 @@ public class HttpParserTest {
 	}
 	
 	@Test
-	public void testOKPOSTRequest() throws IOException, HTTPParseErrorException
+	public void testOKPOSTRequest() throws IOException, HttpParseErrorException
 	{
 		InputStream in = new ByteArrayInputStream(constructRequest("POST", true, true).getBytes("UTF-8"));		
 		parser = new HttpParser(in);
@@ -76,7 +74,7 @@ public class HttpParserTest {
 	}
 	
 	@Test
-	public void testOKDELETERequest() throws IOException, HTTPParseErrorException
+	public void testOKDELETERequest() throws IOException, HttpParseErrorException
 	{
 		InputStream in = new ByteArrayInputStream(constructRequest("DELETE", true, true).getBytes("UTF-8"));		
 		parser = new HttpParser(in);
@@ -85,7 +83,7 @@ public class HttpParserTest {
 	}
 	
 	@Test
-	public void testOKGETParameterParse() throws IOException, HTTPParseErrorException
+	public void testOKGETParameterParse() throws IOException, HttpParseErrorException
 	{
 		InputStream in = new ByteArrayInputStream(constructRequest("GET", true, true).getBytes("UTF-8"));		
 		parser = new HttpParser(in);
@@ -96,7 +94,7 @@ public class HttpParserTest {
 	}
 	
 	@Test
-	public void testOKPOSTParameterParse() throws IOException, HTTPParseErrorException
+	public void testOKPOSTParameterParse() throws IOException, HttpParseErrorException
 	{
 		InputStream in = new ByteArrayInputStream(constructRequest("POST", true, true).getBytes("UTF-8"));		
 		parser = new HttpParser(in);
@@ -106,22 +104,28 @@ public class HttpParserTest {
 		assertEquals(request.getParams().get("p2"), "3");
 	}
 	
-	@Test(expected=HTTPParseErrorException.class)
-	public void testBadHTTPMethod() throws IOException, HTTPParseErrorException
+	@Test(expected=HttpParseErrorException.class)
+	public void testBadHTTPMethod() throws IOException, HttpParseErrorException
 	{
 		InputStream in = new ByteArrayInputStream(constructRequest("POSTING", true, true).getBytes("UTF-8"));		
 		new HttpParser(in).getHttpRequest();
 	}
 	
-	@Test(expected=HTTPParseErrorException.class)
-	public void testBadHTTPRequestLine() throws IOException, HTTPParseErrorException
+	@Test(expected=HttpParseErrorException.class)
+	public void testBadHTTPRequestLine() throws IOException, HttpParseErrorException
 	{
 		InputStream in = new ByteArrayInputStream(constructRequest("POST", false, true).getBytes("UTF-8"));		
 		new HttpParser(in).getHttpRequest();
 	}
 	
-	@Test(expected=HTTPParseErrorException.class)
-	public void testBadHTTPParameters() throws IOException, HTTPParseErrorException
+	@Test(expected=HttpParseErrorException.class)
+	public void testNullInputStream() throws IOException, HttpParseErrorException
+	{
+		new HttpParser(null).getHttpRequest();
+	}
+	
+	@Test(expected=HttpParseErrorException.class)
+	public void testBadHTTPParameters() throws IOException, HttpParseErrorException
 	{
 		InputStream in = new ByteArrayInputStream(constructRequest("POST", true, false).getBytes("UTF-8"));		
 		parser = new HttpParser(in);

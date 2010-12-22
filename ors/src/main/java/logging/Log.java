@@ -2,6 +2,8 @@ package logging;
 
 import java.util.ArrayList;
 
+import logging.handler.LogHandler;
+
 /**
  * Convenient logging class. Inspired from the Python logging module.
  * The logger exposes four methods for logging messages, each of which
@@ -61,7 +63,8 @@ public class Log
 	{
 		if (LOG_LEVEL <= callLevel) {
 			for (LogHandler handler: handlers) {
-				handler.write(msg, callLevel);
+				if (handler.getLevel() <= callLevel)
+					handler.write(msg, callLevel);
 			}
 		}
 	}
