@@ -30,18 +30,18 @@ then
 fi
 
 # Get current version and increment it.
-cd $SERVER_DIR/build
+cd $SERVER_DIR/target
 VERSION=`cat version`
-VERSION=`length=2; echo $VERSION + 0.1 | bc`
+VERSION=`length=3; echo $VERSION + 0.01 | bc`
 
-# Squeeze the python files.
+# Zip and install the python files.
 echo "Installing python files.."
 DATE=`date +%d%m%y.%H%M`
+mkdir build-$VERSION
 cd $SERVER_DIR_MAIN
-mkdir $SERVER_DIR/build/build-$VERSION
 tar -cjf server-$VERSION-$DATE.tar org/
-mv server-$VERSION-$DATE.tar $SERVER_DIR/build/build-$VERSION
-cd $SERVER_DIR/build
+mv server-$VERSION-$DATE.tar $SERVER_DIR/target/build-$VERSION
+cd $SERVER_DIR/target
 if [[ -d latest ]]
 then
    rm -r latest

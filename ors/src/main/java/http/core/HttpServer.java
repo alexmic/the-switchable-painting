@@ -1,7 +1,5 @@
 package http.core;
 
-import http.core.handler.ORSHandler;
-
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -22,11 +20,11 @@ import logging.Log;
  * @author Alex Michael
  *
  */
-public class HTTPServer 
+public class HttpServer 
 {
 	private Integer port;
 	
-	public HTTPServer(Integer port)
+	public HttpServer(Integer port)
 	{
 		this.port = port;
 	}
@@ -61,7 +59,7 @@ public class HTTPServer
 					new BufferedReader((new InputStreamReader(connectionSocket.getInputStream())));
 				final DataOutputStream output = 
 					new DataOutputStream(connectionSocket.getOutputStream());
-				threadPool.submit(new HTTPJob(input, output).setHandler(new ORSHandler()));
+				threadPool.submit(new HttpJob(input, output));
 			} catch (IOException e) {
 				Log.error("EXCEPTION: IOException occured in server loop. Exception message is: " + e.getMessage());
 			} catch (Exception e) {

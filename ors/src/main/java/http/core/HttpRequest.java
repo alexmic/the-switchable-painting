@@ -9,32 +9,32 @@ import java.util.Map;
  * @author Alex Michael.
  *
  */
-public class HTTPRequest 
+public class HttpRequest 
 {
 	private String method = null;
 	private String uri = null;
 	private String protocol = null;
 	private Map<String, String> params = null;
 	
-	public HTTPRequest setURI(String uri)
+	public HttpRequest setURI(String uri)
 	{
 		this.uri = uri;
 		return this;
 	}
 	
-	public HTTPRequest setMethod(String method)
+	public HttpRequest setMethod(String method)
 	{
 		this.method = method;
 		return this;
 	}
 	
-	public HTTPRequest setParams(Map<String, String> params)
+	public HttpRequest setParams(Map<String, String> params)
 	{
 		this.params = params;
 		return this;
 	}
 	
-	public HTTPRequest setProtocol(String protocol)
+	public HttpRequest setProtocol(String protocol)
 	{
 		this.protocol = protocol;
 		return this;

@@ -3,10 +3,9 @@ package http;
 import java.io.IOException;
 
 import logging.ConsoleLogHandler;
-import logging.DatabaseLogHandler;
 import logging.FileLogHandler;
 import logging.Log;
-import http.core.HTTPServer;
+import http.core.HttpServer;
 
 /**
  * HTTP Server boot for Online Recognition Service (ORS). Default listens on port 4444.
@@ -65,7 +64,7 @@ public class ServerMain
 		
 		// Returning false immediately means that this call has failed, otherwise this call will hang since the
 		// server loop will be entered.
-		if (new HTTPServer(port).start() == false) {
+		if (new HttpServer(port).start() == false) {
 			Log.error("Server not able to start. Server exiting.");
 			Log.close();
 			return;

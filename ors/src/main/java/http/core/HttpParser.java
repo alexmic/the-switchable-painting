@@ -17,17 +17,17 @@ import logging.Log;
  * @author Alex Michael.
  *
  */
-public class HTTPParser 
+public class HttpParser 
 {
 	private BufferedReader input;
-	private final String CRLF="\r\n";
+	private final String CRLF= "\r" + System.getProperty("line.separator");
 	
-	public HTTPParser(BufferedReader input)
+	public HttpParser(BufferedReader input)
 	{
 		this.input = input;
 	}
 	
-	public HTTPRequest getHTTPRequest() throws IOException, HTTPParseErrorException
+	public HttpRequest getHTTPRequest() throws IOException, HTTPParseErrorException
 	{
 		return _parse(this.input);
 	}
@@ -39,14 +39,16 @@ public class HTTPParser
 	 * @throws IOException, HTTPParseErrorException
 	 * @return HTTPRequest A populated request object.
 	 */
-	private HTTPRequest _parse(BufferedReader input) throws IOException, HTTPParseErrorException
+	private HttpRequest _parse(BufferedReader input) throws IOException, HTTPParseErrorException
 	{
-		HTTPRequest request = new HTTPRequest();
+		HttpRequest request = new HttpRequest();
 		StringBuffer requestBuffer = new StringBuffer();
 		while (input.ready()) {
 			requestBuffer.append((char) input.read());
 		}
 		int currentIndex = requestBuffer.indexOf(CRLF);
+		if (currentIndex < 0)
+			throw new HTTPParseErrorException("Error in HTTP Request-line format.");
 		String requestLine = requestBuffer.substring(0, currentIndex);
 		String[] requestLineTokens = requestLine.split("\\s");
 		Log.debug("Parsing HTTP request. Request line is: " + requestLine);

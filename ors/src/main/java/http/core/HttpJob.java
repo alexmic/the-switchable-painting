@@ -1,6 +1,5 @@
 package http.core;
 
-import http.core.handler.HTTPHandler;
 import http.exception.HTTPHandleErrorException;
 import http.exception.HTTPParseErrorException;
 
@@ -20,33 +19,26 @@ import logging.Log;
  * @author Alex Michael.
  *
  */
-public class HTTPJob implements Runnable 
+public class HttpJob implements Runnable 
 {
 	private BufferedReader input = null;
 	private DataOutputStream output = null;
-	private HTTPHandler handler = null;
+	private HttpDispatcher dispatcher = null;
 	
-	public HTTPJob(final BufferedReader input, final DataOutputStream output) 
+	public HttpJob(final BufferedReader input, final DataOutputStream output) 
 	{
 		this.input = input;
 		this.output = output;
-	}
-	
-	public HTTPJob setHandler(HTTPHandler handler) 
-	{
-		this.handler = handler;
-		return this;
+		dispatcher = new HttpDispatcher();
 	}
 	
 	@Override
 	public void run() 
 	{
 		try {
-			HTTPRequest request = new HTTPParser(input).getHTTPRequest();
+			HttpRequest request = new HttpParser(input).getHTTPRequest();
 			String response = "";
-			if (handler != null) {
-				response = handler.handle(request);
-			}
+			response = dispatcher.route(request);
 			Log.debug("Request parsed and handled OK. Setting 200 header and response body.");
 			String header = getHTTPHeader(200);
 			output.writeBytes(header);

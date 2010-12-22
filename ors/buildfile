@@ -1,0 +1,21 @@
+############################
+# Buildr Buildfile for ORS #
+#			   #
+# Author: Alex Michael     #
+############################
+
+repositories.remote << 'http://www.ibiblio.org/maven2'
+
+define 'ors' do
+  time = Time.new
+  version = 0
+  File.open("version", "r+") do |f|
+    version = f.gets.to_f + 0.01
+    f.rewind
+    f.puts version.to_s
+  end
+  project.version = version.to_s + "-" + time.day.to_s + time.month.to_s + time.year.to_s + "." + time.hour.to_s + time.min.to_s
+  package :jar
+end
+
+

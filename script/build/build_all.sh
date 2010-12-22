@@ -21,5 +21,5 @@ echo
 echo "-----------------"
 echo "Building the ORS."
 echo "-----------------"
-#./ors/build_ors.sh
+./ors/build_ors.sh
 
