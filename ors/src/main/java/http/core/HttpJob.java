@@ -1,8 +1,5 @@
 package http.core;
 
-import http.core.handler.ors.CollectionHandler;
-import http.core.handler.ors.MatchHandler;
-import http.core.handler.ors.PaintingHandler;
 import http.exception.HttpHandleErrorException;
 import http.exception.HttpParseErrorException;
 
@@ -31,15 +28,12 @@ public class HttpJob implements Runnable
 	private HttpDispatcher dispatcher = null;
 	private final String CRLF = "\r\n";
 	
-	public HttpJob(final Socket connectionSocket) throws IOException 
+	public HttpJob(final Socket connectionSocket, HttpDispatcher dispatcher) throws IOException 
 	{
 		this.socket = connectionSocket;
 		this.input  = connectionSocket.getInputStream();
 		this.output = connectionSocket.getOutputStream();
-		dispatcher  = new HttpDispatcher();
-		dispatcher.addRoute("painting", new PaintingHandler())
-				  .addRoute("match", new MatchHandler())
-				  .addRoute("collection", new CollectionHandler());
+		this.dispatcher = dispatcher;
 	}
 	
 	@Override
@@ -55,22 +49,22 @@ public class HttpJob implements Runnable
  			for (int i = 0; i < headerBytes.length; i++) {
  				output.write(headerBytes[i]); 				
  			}
- 			for (int i = 0; i < headerBytes.length; i++) {
+ 			for (int i = 0; i < responseBytes.length; i++) {
  				output.write(responseBytes[i]);
  			}
 			socket.close();
 		} catch (IOException e) {
-			Log.error("EXCEPTION: IOException occured when handling HTTP request. Exception message is: " + e.getMessage());
-			sendError("IOException occured when handling HTTP request.", 500, output);
+			Log.error("IOException occured when handling HTTP request.", e.getStackTrace());
+			sendError("A server error occured.", 500, output);
 		} catch (HttpParseErrorException e) {
-			Log.warning("REQUEST ERROR: " + e.getMessage());
-			sendError(e.getMessage(), 400, output);
+			Log.error("Request parse error.", e.getStackTrace());
+			sendError("Bad request error.", 400, output);
 		} catch (HttpHandleErrorException e) {
-			Log.warning("REQUEST ERROR: " + e.getMessage());
-			sendError(e.getMessage(), 400, output);
+			Log.error("Handler error.", e.getStackTrace());
+			sendError("Bad request error.", 400, output);
 		} catch (Exception e) {
-			Log.error("EXCEPTION: Unexpected exception occured when handling HTTP request. Exception message is: " + e.getMessage());
-			sendError("Unexpected exception occured when handling HTTP request.", 500, output);
+			Log.error("Unexpected exception occured when handling HTTP request", e.getStackTrace());
+			sendError("A server error occured.", 500, output);
 		}
 	}
 	
@@ -89,7 +83,7 @@ public class HttpJob implements Runnable
  				output.write(headerBytes[i]); 				
  			}
 		} catch (IOException e) {
-			Log.error("EXCEPTION: IOException occured while writing output in error handler. Exception message is " + e.getMessage());
+			Log.error("IOException occured while writing output in error handler.", e.getStackTrace());
 			e.printStackTrace();
 		}
 	}
@@ -125,6 +119,6 @@ public class HttpJob implements Runnable
 		header += "Server: ORSService on localhost" + CRLF;
 		header += "Content-Type: application/json" + CRLF;
 		header += CRLF;
-		return response;
+		return header;
 	}
 }

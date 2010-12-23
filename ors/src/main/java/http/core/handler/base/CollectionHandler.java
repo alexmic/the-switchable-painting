@@ -1,11 +1,20 @@
-package http.core.handler.ors;
+package http.core.handler.base;
 
 import http.core.handler.Handler;
 
 import java.util.Map;
 
-public class MatchHandler implements Handler {
+import com.google.code.morphia.Datastore;
 
+public class CollectionHandler implements Handler {
+
+	private Datastore ds = null;
+	
+	public CollectionHandler(Datastore ds)
+	{
+		this.ds = ds;
+	}
+	
 	@Override
 	public String get(Map<String, String> requestParams) {
 		// TODO Auto-generated method stub

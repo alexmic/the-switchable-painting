@@ -31,19 +31,15 @@ public class HttpDispatcher {
 	{
 		if (request == null)
 			throw new HttpHandleErrorException("Received null HTTP request.");
-		String[] tokens = request.getURI().split("/");
-		if (tokens.length < 2) 
-			throw new HttpHandleErrorException("URI format received is wrong. URIs should be of the format /<handler>.");
-		String handler = tokens[1];
-		String baseURL = handler.split("\\?")[0];
-		if (routes.containsKey(baseURL)) {
-			return routeMethod(routes.get(baseURL), request);
+		String baseURI = request.getURI().split("\\?")[0];
+		if (routes.containsKey(baseURI)) {
+			return _route(routes.get(baseURI), request);
 		} else {
 			throw new HttpHandleErrorException("Handler not recognized.");
 		}
 	}
 	
-	private String routeMethod(Handler handler, HttpRequest request) throws HttpHandleErrorException
+	private String _route(Handler handler, HttpRequest request) throws HttpHandleErrorException
 	{
 		String method = request.getMethod();
 		if (method.equals("GET")) {

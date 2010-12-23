@@ -68,8 +68,8 @@ public class HttpDispatcherTest {
 	public void setUp()
 	{
 		dispatcher = new HttpDispatcher();
-		dispatcher.addRoute("niceRoute", new NiceRouteHandler())
-				  .addRoute("badRoute", new BadRouteHandler());
+		dispatcher.addRoute("/niceRoute", new NiceRouteHandler())
+				  .addRoute("/badRoute", new BadRouteHandler());
 	}
 	
 	@Test

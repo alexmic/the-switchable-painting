@@ -41,30 +41,55 @@ public class Log
 	
 	public static void debug(String msg)
 	{
-		_filter(DEBUG, msg);
+		_filter(DEBUG, msg, null);
+	}
+	
+	public static void debug(String extraInfo, StackTraceElement[] stackTrace)
+	{
+		_filter(DEBUG, toString(stackTrace), extraInfo);
 	}
 	
 	public static void info(String msg)
 	{
-		_filter(INFO, msg);
+		_filter(INFO, msg, null);
+	}
+	
+	public static void info(String extraInfo, StackTraceElement[] stackTrace)
+	{
+		_filter(INFO, toString(stackTrace), extraInfo);
 	}
 	
 	public static void error(String msg)
 	{
-		_filter(ERROR, msg);
+		_filter(ERROR, msg, null);
+	}
+	
+	public static void error(String extraInfo, StackTraceElement[] stackTrace)
+	{
+		_filter(ERROR, toString(stackTrace), extraInfo);
 	}
 	
 	public static void warning(String msg)
 	{
-		_filter(WARNING, msg);
+		_filter(WARNING, msg, null);
+	}
+
+	public static void warning(String extraInfo, StackTraceElement[] stackTrace)
+	{
+		_filter(WARNING, toString(stackTrace), extraInfo);
 	}
 	
-	private static void _filter(int callLevel, String msg)
+	private static void _filter(int callLevel, String msg, String extraInfo)
 	{
 		if (LOG_LEVEL <= callLevel) {
 			for (LogHandler handler: handlers) {
-				if (handler.getLevel() <= callLevel)
-					handler.write(msg, callLevel);
+				if (handler.getLevel() <= callLevel) {
+					if (extraInfo == null)
+						extraInfo = "";
+					else
+						extraInfo += "\n";
+					handler.write(extraInfo + msg, callLevel);
+				}
 			}
 		}
 	}
@@ -74,5 +99,14 @@ public class Log
 		for (LogHandler handler: handlers) {
 			handler.close();
 		}
+	}
+	
+	private static String toString(StackTraceElement[] stackTrace) 
+	{
+		String msg = "";
+		for(StackTraceElement trace : stackTrace) {
+			msg += trace.toString() + "\r";
+		}
+		return msg;
 	}
 }

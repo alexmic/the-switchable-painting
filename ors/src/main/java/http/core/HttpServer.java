@@ -19,11 +19,13 @@ import logging.Log;
  */
 public class HttpServer 
 {
-	private Integer port;
+	private Integer port = null;
+	private HttpDispatcher dispatcher = null;
 	
-	public HttpServer(Integer port)
+	public HttpServer(Integer port, HttpDispatcher dispatcher)
 	{
 		this.port = port;
+		this.dispatcher = dispatcher;
 	}
 	
 	/**
@@ -38,10 +40,10 @@ public class HttpServer
 		try {
 			serverSocket = new ServerSocket(port);
 		} catch (IOException e) {
-			Log.error("EXCEPTION: IOException occured when initializing server socket. Exception message is: " + e.getMessage());
+			Log.error("IOException occured when initializing server socket.", e.getStackTrace());
 			return false;
 		} catch (Exception e) {
-			Log.error("EXCEPTION: Unexpected error occured when initializing server socket. Exception message is: " + e.getMessage());
+			Log.error("Unexpected error occured when initializing server socket.", e.getStackTrace());
 			return false;
 		}
 		
@@ -52,11 +54,11 @@ public class HttpServer
 			Socket connectionSocket;
 			try {
 				connectionSocket = serverSocket.accept();
-				threadPool.submit(new HttpJob(connectionSocket));
+				threadPool.submit(new HttpJob(connectionSocket, dispatcher));
 			} catch (IOException e) {
-				Log.error("EXCEPTION: IOException occured in server loop. Exception message is: " + e.getMessage());
+				Log.error("IOException occured in server loop.", e.getStackTrace());
 			} catch (Exception e) {
-				Log.error("EXCEPTION: Unexpected error occured in server loop. Exception message is: " + e.getMessage());
+				Log.error("Unexpected error occured in server loop.", e.getStackTrace());
 			}
 		}
 	}
