@@ -27,8 +27,9 @@ class UploadPanelHandler(base.BaseHandler):
     
     def on_service_response(self, http_response):
         """ ORSService async callback. """
+        print http_response.body
         # fix error handling   
-        if not http_response.code == 200:
+        if http_response.code != 200:
             # write error
             return
         chunk = self.get_chunk(success=True,
@@ -57,10 +58,12 @@ class UploadPanelHandler(base.BaseHandler):
             self.write(chunk)
             self.flush()
             service = ORSService()
-            id = 0
             if len(file) == 1:
                 id = file[0].split(".")[0]
-            service.put_painting(id, self.async_callback(self.on_service_response))
+                service.put_painting(id, self.async_callback(self.on_service_response))
+            else:
+                self.write(self.get_chunk(success=False, next_msg="No file selected for upload.", last=True))
+                self.finish()
         except NullRequestError, (instance):
             self.log.debug(instance.err_msg)
             self.write(self.get_chunk(success=False, next_msg="Empty request received.", last=True))

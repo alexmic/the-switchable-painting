@@ -8,7 +8,7 @@ public class ServerStressTest {
 	public static void main(String[] args) 
 	{
 		ServerStressTest test = new ServerStressTest();
-		test.concurrentUsers(300);
+		test.concurrentUsers(3000);
 	}
 	
 	private void concurrentUsers(int users) 
@@ -37,7 +37,7 @@ public class ServerStressTest {
 					((HttpURLConnection) url.openConnection()).getContent();
 				} catch (Exception e) {
 					errors += 1;
-				}
+				} 
 				finish = System.currentTimeMillis();
 				requests++;
 			}

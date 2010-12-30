@@ -206,13 +206,13 @@ var DOM = new function() {
         });
 
         $("#upload-another-painting-btn").click(function(){
-            $("#upload-bar").fadeOut(100);
+            $("#upload-bar").fadeOut(0);
             DOM.transition($("#upload-success-controls"), $("#upload-controls"));
             _formUploader_.reset();
         });
 
         $("#upload-fail-painting-btn").click(function(){
-            $("#upload-bar").fadeOut(100);
+            $("#upload-bar").fadeOut(0);
             DOM.transition($("#upload-fail-controls"), $("#upload-controls"));
             _formUploader_.reset();
         });        

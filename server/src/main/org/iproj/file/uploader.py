@@ -21,7 +21,6 @@ class Uploader:
     ##############
     def size(self, size):
         def _size(file):
-            print len(file["body"])
             if len(file["body"]) > size:
                 raise SizeLimitExceededError()
         self.__active_validators.append(_size)

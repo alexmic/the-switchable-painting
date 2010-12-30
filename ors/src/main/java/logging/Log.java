@@ -103,10 +103,11 @@ public class Log
 	
 	private static String toString(StackTraceElement[] stackTrace) 
 	{
-		String msg = "";
+		String msg = "-- \r";
 		for(StackTraceElement trace : stackTrace) {
 			msg += trace.toString() + "\r";
 		}
+		msg += "-- \r";
 		return msg;
 	}
 }

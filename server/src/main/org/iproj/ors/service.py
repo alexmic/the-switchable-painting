@@ -6,7 +6,7 @@ import tornado.httputil
 class ORSService:
     
     def __init__(self):
-        self.base_uri = "http://localhost:4444/api/"
+        self.base_uri = "http://localhost:4444/"
     
     def put_painting(self, id, cback):
         self.__do(self.__get_request(uri="painting", method="PUT", params={"id" : id}), cback)
@@ -28,12 +28,14 @@ class ORSService:
         http.fetch(http_request, callback=cback)
     
     def __get_request(self, uri=None, method=None, params=None):
-        # Separate between GET/DELETE and POST/PUT
         method = method or "GET"
         uri = uri or ""
         params = params or {}
-        body = self.__get_request_body(params)
-        #headers = self.__get_request_headers(body) -> created by HTTPRequest
+        if method == "PUT" or method == "POST":
+            body = self.__get_request_body(params)
+        else:
+            body = ""
+            uri += self.__get_qs(params)
         return tornado.httpclient.HTTPRequest(
                            self.base_uri + uri,
                            method=method,
@@ -43,14 +45,19 @@ class ORSService:
         return "HTTP/1.1"
     
     def __get_request_body(self, params):
+        if len(params) == 0:
+            return ""
+        return self.__format_params(params)
+        
+    def __format_params(self, params):
+        if len(params) == 0:
+            return ""
         body = ""
         for key,value in params.iteritems():
             body += str(key) + "=" + str(value) + "&"
         return body[:-1]
     
-    def __get_request_headers(self, body):
-        l = len(body)
-        header_dict = {
-            "content-length" : l
-        }
-        return tornado.httputil.HTTPHeaders(header_dict)
+    def __get_qs(self, params):
+        if len(params) == 0:
+            return ""
+        return "?" + self.__format_params(params)
