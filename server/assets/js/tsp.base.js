@@ -199,7 +199,7 @@ var DOM = new function() {
         });
         
         $("#upload-analysis-btn").click(function(){
-            var path = "/storage/" + $("#pID").val() + "_CORNERS.png";
+            var path = "/storage/" + $("#pID").val() + "_CORNERS";
             jQuery.facebox("<img src='" + path + "' />");
         });
 

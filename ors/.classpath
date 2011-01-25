@@ -12,5 +12,6 @@
 	<classpathentry kind="lib" path="lib/mongo-2.3.jar"/>
 	<classpathentry kind="lib" path="lib/proxytoys-1.0.jar"/>
 	<classpathentry kind="lib" path="lib/morphia-0.98.jar"/>
+	<classpathentry kind="lib" path="lib/gson-1.6.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
