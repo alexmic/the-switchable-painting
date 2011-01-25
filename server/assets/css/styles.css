@@ -91,14 +91,14 @@ a.UI-button-red-back:active {
  ************/
 
 #tsp-title {
-    margin-top: 0px;
+    margin-top: 10px;
     position: relative;
     font-weight: bold;
     font-size: 3em;
 }
 
 #enhance-container {
-    margin-top: 250px;
+    margin-top: 15px;
     padding-top: 10px;
 }
 
@@ -113,6 +113,14 @@ a.UI-button-red-back:active {
     font-weight: bold;
     font-size: 1.8em;
     color: #333;
+}
+
+#imgs-container{
+    margin: 5px 0px 5px 0px;
+}
+
+#imgs-container img{
+    margin-right: 30px;
 }
 
 #upload-bar {

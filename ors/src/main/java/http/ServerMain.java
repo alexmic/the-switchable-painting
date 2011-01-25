@@ -5,6 +5,7 @@ import http.core.HttpServer;
 import http.core.handler.base.CollectionHandler;
 import http.core.handler.base.MatchHandler;
 import http.core.handler.base.PaintingHandler;
+import http.core.handler.base.TestFDHandler;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -99,7 +100,7 @@ public class ServerMain
 		
 		// Wire up the routes.
 		HttpDispatcher dispatcher = new HttpDispatcher();
-		dispatcher.addRoute("/painting", new PaintingHandler(ds))
+		dispatcher.addRoute("/painting", new TestFDHandler(ds))
 		  		  .addRoute("/match", new MatchHandler(ds))
 		  		  .addRoute("/collection", new CollectionHandler(ds));
 		

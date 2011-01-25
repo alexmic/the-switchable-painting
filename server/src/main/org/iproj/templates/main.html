@@ -7,17 +7,22 @@
     <div class="span-18 last" id="tsp-title">
         The Switchable Painting
     </div>
-    <div class="span-24">
+    <div class="span-18">
        <p>
-        The Switchable Painting uses AR technology and gesture recognition allowing you to explore works of art through your mobile camera.
+        The Switchable Painting uses AR technology and gesture recognition so you can explore works of art on your mobile phone.
        </p>
     </div>
-    <div class="span-24" id="enhance-container">
-        <b class="span-24" style="font-size:1.4em">Enhance the collection</b>
-        <p class="span-24" >
+    <div id="imgs-container" class="span-18">
+        <img src="/static/imgs/tsp1.jpg" />
+        <img src="/static/imgs/tsp2.jpg" />
+        <img src="/static/imgs/tsp3.jpg" />
+    </div>
+    <div class="span-18" id="enhance-container">
+        <b class="span-18" style="font-size:1.4em">Enhance the collection</b>
+        <p class="span-18" >
             Enhance TSP's knowledge by uploading a painting to the collection. TSP currently knows of..
         </p>
-        <div class="span-24">
+        <div class="span-18">
             <div class="span-16 prepend-8" id="tsp-knowledge">
                 <div class="span-8">
                     10 paintings
@@ -30,7 +35,7 @@
         <a class="UI-button" id="show-upload-painting-btn">
             Upload a painting
         </a>
-        <div style="display:none" class="span-24" id="upload-painting-container">
+        <div style="display:none" class="span-18" id="upload-painting-container">
             <form enctype="multipart/form-data" action="/panel/upload" method="POST">
                 <div id="upload-controls">
                     <input name="uploaded-file" type="file" /><br />
@@ -47,6 +52,7 @@
                     Uploading your painting..
                 </div>
                 <div style="display:none" id="upload-success-controls">
+                    <input type="hidden" id="pID" value=""></input>
                     <a class="UI-button" id="upload-another-painting-btn">
                         Upload another
                     </a>

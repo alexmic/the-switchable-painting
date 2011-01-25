@@ -118,6 +118,7 @@ var Uploader = function(f) {
             if (jsonResponse.last) {
                 _formUploader_.progressBar.status("ok");
                  $("#upload-success-controls").show();
+                 $("#pID").val(jsonResponse.id);
             }
         } else {
             _formUploader_.progressBar.status("fail");
@@ -198,11 +199,8 @@ var DOM = new function() {
         });
         
         $("#upload-analysis-btn").click(function(){
-            jQuery.facebox(function() { 
-                jQuery.post('/api/analysis/' + paintingID , function(data) {
-                    jQuery.facebox(data);
-                });
-            });
+            var path = "/storage/" + $("#pID").val() + "_CORNERS.png";
+            jQuery.facebox("<img src='" + path + "' />");
         });
 
         $("#upload-another-painting-btn").click(function(){

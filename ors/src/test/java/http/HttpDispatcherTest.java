@@ -7,7 +7,8 @@ import java.util.Map;
 import http.core.HttpDispatcher;
 import http.core.HttpRequest;
 import http.core.handler.Handler;
-import http.exception.HttpHandleErrorException;
+import http.exception.HttpHandlerErrorException;
+import http.exception.HttpRouteErrorException;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -73,7 +74,7 @@ public class HttpDispatcherTest {
 	}
 	
 	@Test
-	public void testExistingGETHandlerDispatch() throws HttpHandleErrorException
+	public void testExistingGETHandlerDispatch() throws HttpRouteErrorException, HttpHandlerErrorException
 	{
 		assertEquals(dispatcher.route(
 						new HttpRequest()
@@ -90,7 +91,7 @@ public class HttpDispatcherTest {
 	}
 	
 	@Test
-	public void testExistingPOSTHandlerDispatch() throws HttpHandleErrorException
+	public void testExistingPOSTHandlerDispatch() throws HttpRouteErrorException, HttpHandlerErrorException
 	{
 		assertEquals(dispatcher.route(
 				new HttpRequest()
@@ -106,8 +107,8 @@ public class HttpDispatcherTest {
 				"badpost");	
 	}
 	
-	@Test(expected=HttpHandleErrorException.class)
-	public void testNotExistingGETHandlerDispatch() throws HttpHandleErrorException
+	@Test(expected=HttpRouteErrorException.class)
+	public void testNotExistingGETHandlerDispatch() throws HttpRouteErrorException, HttpHandlerErrorException
 	{
 		dispatcher.route(
 				new HttpRequest()
@@ -116,8 +117,8 @@ public class HttpDispatcherTest {
 				);
 	}
 	
-	@Test(expected=HttpHandleErrorException.class)
-	public void testNotExistingPOSTHandlerDispatch() throws HttpHandleErrorException
+	@Test(expected=HttpRouteErrorException.class)
+	public void testNotExistingPOSTHandlerDispatch() throws HttpRouteErrorException, HttpHandlerErrorException
 	{
 		dispatcher.route(
 				new HttpRequest()
@@ -126,14 +127,14 @@ public class HttpDispatcherTest {
 				);
 	}
 	
-	@Test(expected=HttpHandleErrorException.class)
-	public void testNullRequest() throws HttpHandleErrorException
+	@Test(expected=HttpRouteErrorException.class)
+	public void testNullRequest() throws HttpRouteErrorException, HttpHandlerErrorException
 	{
 		dispatcher.route(null);
 	}
 	
 	@Test
-	public void testExistingMethodDispatch() throws HttpHandleErrorException
+	public void testExistingMethodDispatch() throws HttpRouteErrorException, HttpHandlerErrorException
 	{
 		assertEquals(dispatcher.route(
 				new HttpRequest()
@@ -161,8 +162,8 @@ public class HttpDispatcherTest {
 				"nicedelete");
 	}
 	
-	@Test(expected=HttpHandleErrorException.class)
-	public void testNotExistingMethodDispatch() throws HttpHandleErrorException
+	@Test(expected=HttpRouteErrorException.class)
+	public void testNotExistingMethodDispatch() throws HttpRouteErrorException, HttpHandlerErrorException
 	{
 		dispatcher.route(
 				new HttpRequest()

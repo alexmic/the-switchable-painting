@@ -8,7 +8,7 @@ import ConfigParser
 import logging
 
 from org.iproj.etc import fn
-from org.iproj.handler import base, api, panel
+from org.iproj.handler import base, api, panel, storage
 
 ########
 # Boot #
@@ -28,7 +28,8 @@ Config = ConfigParser.ConfigParser(allow_no_value=True)
 Handlers = [
     ("/api", api.ApiHandler),
     ("/panel", panel.MainPanelHandler),
-    ("/panel/upload", panel.UploadPanelHandler)
+    ("/panel/upload", panel.UploadPanelHandler),
+    (r"/storage/(.*)", storage.StorageHandler)
 ]
 
 class Application(tornado.web.Application):

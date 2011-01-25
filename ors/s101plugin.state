@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<structure101-builder version="1.0" format="state" vendor="headway" generated-at="Tue Jan 25 03:25:25 GMT 2011">
+  <builder-settings includeExternals="true" diagramsTimeStamp="0" classPath="" compilationPath="">
+    <s101plugin-properties>
+      <isEnabled value="true"/>
+      <onDemand value="true"/>
+      <repository value="file:/structure101-repository"/>
+      <project value=""/>
+      <snapshot value=""/>
+      <violationsSeverity value="Warn"/>
+      <newViolationsSeverity value="Error"/>
+      <excludesEnabled value="true"/>
+      <excludesPaths value="test:"/>
+    </s101plugin-properties>
+    <excludes/>
+    <transformations/>
+  </builder-settings>
+</structure101-builder>

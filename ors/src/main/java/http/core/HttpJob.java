@@ -1,6 +1,7 @@
 package http.core;
 
-import http.exception.HttpHandleErrorException;
+import http.exception.HttpHandlerErrorException;
+import http.exception.HttpRouteErrorException;
 import http.exception.HttpParseErrorException;
 
 import java.io.IOException;
@@ -52,19 +53,27 @@ public class HttpJob implements Runnable
  			for (int i = 0; i < responseBytes.length; i++) {
  				output.write(responseBytes[i]);
  			}
-			socket.close();
 		} catch (IOException e) {
-			Log.error("IOException occured when handling HTTP request.", e.getStackTrace());
+			Log.error("IOException occured when handling HTTP request: " + e.getMessage(), e.getStackTrace());
 			sendError("A server error occured.", 500, output);
 		} catch (HttpParseErrorException e) {
 			Log.error("Request parse error.", e.getStackTrace());
 			sendError("Bad request error.", 400, output);
-		} catch (HttpHandleErrorException e) {
-			Log.error("Handler error.", e.getStackTrace());
+		} catch (HttpRouteErrorException e) {
+			Log.error("Error in routing request: " + e.getMessage(), e.getStackTrace());
 			sendError("Bad request error.", 400, output);
-		} catch (Exception e) {
-			Log.error("Unexpected exception occured when handling HTTP request", e.getStackTrace());
+		} catch (HttpHandlerErrorException e) {
+			Log.error("Error in handling method: " + e.getMessage(), e.getStackTrace());
 			sendError("A server error occured.", 500, output);
+		} catch (Exception e) {
+			Log.error("Unexpected exception occured when handling HTTP request: "+ e.getMessage(), e.getStackTrace());
+			sendError("A server error occured.", 500, output);
+		} finally {
+			try {
+				socket.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
