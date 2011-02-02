@@ -99,12 +99,12 @@ class SizeLimitExceededError(BaseError):
 
 class WrongMimetypeError(BaseError):
     def __init__(self, mimetype):
-        super(WrongMimetypeError, self).__init__("Wrong mimetype -> " + mimetype, 1)
+        super(WrongMimetypeError, self).__init__("Non-permitted mimetype: " + mimetype, 1)
 
 class WrongExtensionError(BaseError):
     def __init__(self, extension):
-        super(WrongExtensionError, self).__init__("Wrong extension -> " + extension, 2)    
+        super(WrongExtensionError, self).__init__("Non-permitted extension: " + extension, 2)    
 
 class NullRequestError(BaseError):
     def __init__(self):
-        super(NullRequestError, self).__init__("Null request received in Uploader.", 3)
+        super(NullRequestError, self).__init__("Empty request received.", 3)

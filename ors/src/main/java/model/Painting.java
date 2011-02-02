@@ -1,7 +1,5 @@
 package model;
 
-import java.util.Arrays;
-
 import com.google.code.morphia.annotations.*;
 import com.google.code.morphia.emul.org.bson.types.ObjectId;
 import cv.descriptor.FeatureVector;
@@ -13,7 +11,19 @@ public class Painting {
 	private String title;
 	private String artist;
 	private String paintingId;
+	private int descriptorType = 1;
 	@Embedded private FeatureVector[] featureVectors;
+	
+	public Painting setDescriptorType(int type)
+	{
+		this.descriptorType = type;
+		return this;
+	}
+	
+	public int getDescriptorType()
+	{
+		return this.descriptorType;
+	}
 	
 	public Painting setPaintingId(String pID)
 	{

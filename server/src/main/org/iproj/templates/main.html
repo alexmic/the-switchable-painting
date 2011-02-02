@@ -20,28 +20,27 @@
     <div class="span-18" id="enhance-container">
         <b class="span-18" style="font-size:1.4em">Enhance the collection</b>
         <p class="span-18" >
-            Enhance TSP's knowledge by uploading a painting to the collection. TSP currently knows of..
+            Enhance TSP's knowledge by uploading a painting to the collection.
         </p>
-        <div class="span-18">
-            <div class="span-16 prepend-8" id="tsp-knowledge">
-                <div class="span-8">
-                    10 paintings
-                </div>
-                <div class="span-8 last">
-                    121 unique feature points
-                </div>
-            </div>
-        </div>
         <a class="UI-button" id="show-upload-painting-btn">
             Upload a painting
         </a>
         <div style="display:none" class="span-18" id="upload-painting-container">
             <form enctype="multipart/form-data" action="/panel/upload" method="POST">
                 <div id="upload-controls">
-                    Title: <input name="painting-title" type="text" /><br />
-                    Artist:<input name="painting-artist" type="text" /><br />
-                    <input name="uploaded-file" type="file" /><br />
-                    <div style="margin-top: 15px;">
+                    <div class="span-18" style="font-weight:bold; font-size: 1.2em">Title</div>
+                    <input class="span-8" style="margin-bottom:15px" name="painting-title" type="text" />
+                    <div class="span-18" style="font-weight:bold; font-size: 1.2em">Artist</div>
+                    <input class="span-8" style="margin-bottom:15px" name="painting-artist" type="text" /><br />
+                    <div class="span-18" style="font-weight:bold; font-size: 1.2em">Descriptor Type (during testing phase)</div>
+                    <select style="margin-bottom:15px" name="painting-strategy" id="painting-strategy" class="span-8">
+                        <option value="0">Intensity Histogram</option>
+                        <option value="1">SIFT</option>
+                        <option value="2">SURF</option>
+                    </select>
+                    <div class="span-18" style="font-weight:bold; font-size: 1.2em">Painting image</div>
+                    <input class="span-18" style="margin-top:10px;"name="uploaded-file" type="file" /><br />
+                    <div class="span-18" style="margin-top: 20px;">
                         <a class="UI-button" id="upload-painting-btn">
                             Upload
                         </a>

@@ -15,7 +15,6 @@ import cv.common.Filter;
 import cv.descriptor.FeatureVector;
 import cv.descriptor.strategy.Context;
 import cv.descriptor.strategy.DescriptorContext;
-import cv.descriptor.strategy.ihistogram.HistogramDescriptorStrategy;
 import cv.detector.fast.Fast12;
 import cv.detector.fast.FeaturePoint;
 
@@ -84,12 +83,11 @@ public class TestFDHandler implements Handler {
 				
 				// Perform feature description using either a simple histogram or SIFT or SURF.
 				Context descriptorContext = null;
-				if (requestParams.containsKey("ds")) {
-					int keycode = Integer.valueOf(requestParams.get("ds"));
-					descriptorContext = new DescriptorContext(keycode);
-				} else {
-					descriptorContext = new DescriptorContext(new HistogramDescriptorStrategy());
-				}
+				int keycode = 0;
+				if (requestParams.containsKey("s")) {
+					keycode = Integer.valueOf(requestParams.get("s"));
+				} 
+				descriptorContext = new DescriptorContext(keycode);
 				FeatureVector[] vectors = descriptorContext.getFeatureVectors(featurePoints, pixels);
 				System.out.println("Time for description using -> " 
 									+ descriptorContext.getStrategy().toString() 
@@ -105,6 +103,7 @@ public class TestFDHandler implements Handler {
 				}
 				
 				Painting newPainting = new Painting()
+									   .setDescriptorType(keycode)
 									   .setPaintingId(pID)
 									   .setArtist(requestParams.containsKey("artist")? requestParams.get("artist"): "Unknown")
 									   .setTitle(requestParams.containsKey("title")? requestParams.get("title"): "Untitled")

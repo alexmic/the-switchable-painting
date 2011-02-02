@@ -58,11 +58,7 @@ class UploaderTestModule(unittest.TestCase):
         dummy_request = DummyFileRequest(ext = "doc", ct = "image/jpg")
         try:
             uploader = Uploader(dummy_request).size(5).mimetypes("image/png").extensions(["png"]).check()
-        except SizeLimitExceededError, (instance):
-            pass
-        except WrongMimetypeError, (instance):
-            pass
-        except WrongExtensionError, (instance):
+        except (SizeLimitExceededError, WrongMimetypeError, WrongExtensionError), (instance):
             pass
         else:
             self.fail("No exception was thrown.")

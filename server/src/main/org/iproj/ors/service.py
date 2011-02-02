@@ -8,8 +8,8 @@ class ORSService:
     def __init__(self):
         self.base_uri = "http://localhost:4444/"
     
-    def put_painting(self, id, title, artist, cback):
-        self.__do(self.__get_request(uri="painting", method="PUT", params={"id" : id, "title" : title, "artist" : artist}), cback)
+    def put_painting(self, id, title, artist, strategy, cback):
+        self.__do(self.__get_request(uri="painting", method="PUT", params={"id" : id, "title" : title, "artist" : artist, "s" : strategy}), cback)
     
     def get_painting(self, id, cback):
         self.__do(self.__get_request(uri="painting", method="GET", params={"id" : id}), cback)
@@ -20,8 +20,8 @@ class ORSService:
     def add_association(self, id, new_assoc_id, cback):
         self.__do(self.__get_request(uri="collection", method="POST", params={"id" : id, "na_id" : id}), cback)
     
-    def sim_match(self, cback):
-        self.__do(self.__get_request(uri="match", method="GET", params={}), cback)
+    def sim_match(self, strategy, cback):
+        self.__do(self.__get_request(uri="match", method="GET", params={"s": strategy}), cback)
     
     def get_match(self, id, feature_vectors, cback):
         self.__do(self.__get_request(uri="match", method="POST", params={"id" : id, "fvectors" : feature_vectors}), cback)

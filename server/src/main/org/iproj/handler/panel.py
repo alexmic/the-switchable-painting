@@ -10,16 +10,27 @@ import tornado.ioloop
 class SimPanelHandler(base.BaseHandler):
     
     def on_service_response(self, http_response):
-        if http_response.code == 200:
-            json_response = json_decode(http_response.body)
-            self.render("sim.html", simid=json_response["simid"], imgs=json_response["imgs"])
-        else:
-            self.write("Hm, error in sim matching.")
-            
+        try:
+            if http_response.error:
+                http_response.rethrow()
+            if http_response.code == 200:
+                json_response = json_decode(http_response.body)
+                self.render("sim.html", simid=json_response["simid"], imgs=json_response["imgs"])
+            else:
+                self.write("An error occured.")
+                self.finish()
+        except Exception, e:
+            self.log.error(e)
+            self.write(str(e))
+            self.finish()
+    
     @tornado.web.asynchronous
-    def base_get(self):
+    def base_get(self, strategy):
         """ Renders landing page. """
-        service = ORSService().sim_match(self.on_service_response)
+        strategy = int(strategy or 1)
+        if strategy not in [1, 2, 3]:
+            strategy = 1
+        service = ORSService().sim_match(strategy - 1, self.on_service_response)
 
     def base_post(self):
         """ Not implemented. """
@@ -47,20 +58,26 @@ class UploadPanelHandler(base.BaseHandler):
         """ ORSService async callback. """
         success = http_response.code == 200
         response = {"success": success, "last": True}
-        if success:
-            json = json_decode(http_response.body)
-            if json["s"]:
-                response["next_msg"] = "Your painting was uploaded succesfully. :-)"
-                response["id"] = json["id"]
+        try:
+            if http_response.error:
+                http_response.rethrow()   
+            if success:
+                json = json_decode(http_response.body)
+                if json["s"]:
+                    response["next_msg"] = "Your painting was uploaded succesfully. :-)"
+                    response["id"] = json["id"]
+                else:
+                    response["next_msg"] = json["msg"]
             else:
-                response["next_msg"] = json["msg"]
-        else:
+                response["next_msg"] = "Server error. Please try again."
+        except Exception, (instance):
+            self.log.error(instance)
             response["next_msg"] = "Server error. Please try again."
-        
-        chunk = self.make_chunk(response)
-        self.write(chunk)
-        self.flush()
-        self.finish()
+        finally:       
+            chunk = self.make_chunk(response)
+            self.write(chunk)
+            self.flush()
+            self.finish()
     
     def base_get(self):
         """ Not implemented. """
@@ -82,6 +99,7 @@ class UploadPanelHandler(base.BaseHandler):
             self.flush()
             title = self.get_argument("painting-title")
             artist = self.get_argument("painting-artist")
+            strategy = self.get_argument("painting-strategy")
             if not title:
                 self.write(self.make_chunk({"success":False, "next_msg":"Please specify the painting's title.", "last":True}))
                 self.finish()
@@ -92,28 +110,16 @@ class UploadPanelHandler(base.BaseHandler):
                 service = ORSService()
                 if len(file) == 1:
                     id = file[0].split(".")[0]
-                    service.put_painting(id, title, artist, self.async_callback(self.on_service_response))
+                    service.put_painting(id, title, artist, strategy, self.async_callback(self.on_service_response))
                 else:
                     self.write(self.make_chunk({"success":False, "next_msg":"No file selected for upload.", "last":True}))
                     self.finish()
-        except NullRequestError, (instance):
-            self.log.debug(instance.err_msg)
-            self.write(self.make_chunk({"success":False, next_msg:"Empty request received.", "last":True}))
+        except (NullRequestError, SizeLimitExceededError, WrongMimetypeError, WronExtensionError), e:
+            self.log.error(e.err_msg)
+            self.write(self.make_chunk({"success":False, next_msg:e.err_msg, "last":True}))
             self.finish()
-        except SizeLimitExceededError, (instance):
-            self.log.debug(instance.err_msg)
-            self.write(self.make_chunk({"success":False, next_msg:"You've exceeded the allowed file limit.","last":True}))
+        except Exception, e:
+            self.log.error(e)
+            self.write(self.make_chunk({"success":False, next_msg:"An error occured. Please try again.", "last":True}))
             self.finish()
-        except WrongMimetypeError, (instance):
-            self.log.debug(instance.err_msg)
-            self.write(self.make_chunk({"success":False, "next_msg":"Non-permitted mimetype.", "last":True}))
-            self.finish()
-        except WrongExtensionError, (instance):
-            self.log.debug(instance.err_msg)
-            self.write(self.make_chunk({"success":False, "next_msg":"Non-permitted extension.", "last":True}))
-            self.finish()
-        except:
-            # Hmm not ideal. Fix it.
-            import sys
-            print "UNEXPECTED EXCEPTION: ", sys.exc_info()[0]
             raise

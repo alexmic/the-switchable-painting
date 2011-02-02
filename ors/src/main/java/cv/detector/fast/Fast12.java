@@ -8,7 +8,7 @@ public class Fast12 {
 	public static FeaturePoint[] detect(int[][] image, int w, int h, int threshold, int N)
 	{
 		// um.. guessestimate number of corners.
-		FeaturePoint[] corners = new FeaturePoint[10000];
+		FeaturePoint[] corners = new FeaturePoint[20000];
 		int count = 0;
 		for (int y = 4; y < h - 4; ++y) {
 			for (int x = 4; x < w - 4; ++x) {
