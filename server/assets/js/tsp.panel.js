@@ -1,7 +1,6 @@
 /*
     The Switchable Painting
-    main.css
-    JS code.
+    Upload panel code.
     
     Author: Alex Michael, 2010.
  

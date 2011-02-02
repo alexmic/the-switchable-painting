@@ -38,6 +38,8 @@
         <div style="display:none" class="span-18" id="upload-painting-container">
             <form enctype="multipart/form-data" action="/panel/upload" method="POST">
                 <div id="upload-controls">
+                    Title: <input name="painting-title" type="text" /><br />
+                    Artist:<input name="painting-artist" type="text" /><br />
                     <input name="uploaded-file" type="file" /><br />
                     <div style="margin-top: 15px;">
                         <a class="UI-button" id="upload-painting-btn">
@@ -68,4 +70,8 @@
             </form>
         </div>
     </div>
+{% end %}
+
+{% block template-scripts %}
+    <script src="{{ static_url('js/tsp.panel.js') }}" type="text/javascript"></script>
 {% end %}

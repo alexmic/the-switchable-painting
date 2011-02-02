@@ -1,14 +1,15 @@
-package http.core.handler.base;
+package http.core.handler;
 
-import http.core.handler.Handler;
+
 import java.util.Map;
+
 import com.google.code.morphia.Datastore;
 
-public class MatchHandler implements Handler {
+public class CollectionHandler implements Handler {
 
 	private Datastore ds = null;
 	
-	public MatchHandler(Datastore ds)
+	public CollectionHandler(Datastore ds)
 	{
 		this.ds = ds;
 	}

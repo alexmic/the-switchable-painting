@@ -9,6 +9,7 @@ import logging
 
 from org.iproj.etc import fn
 from org.iproj.handler import base, api, panel, storage
+from org.iproj.handler.uimodules import uimodules
 
 ########
 # Boot #
@@ -18,7 +19,8 @@ from org.iproj.handler import base, api, panel, storage
 Settings = {
     "static_path": os.path.join("..","..","..","..","assets"),
     "cookie_secret": "exwtriaarxidia",
-    "template_path": "templates"
+    "template_path": "templates",
+    "ui_modules": uimodules
 }
 
 # Configuration parameters
@@ -27,6 +29,7 @@ Config = ConfigParser.ConfigParser(allow_no_value=True)
 # Application handlers
 Handlers = [
     ("/api", api.ApiHandler),
+    ("/sim", panel.SimPanelHandler),
     ("/panel", panel.MainPanelHandler),
     ("/panel/upload", panel.UploadPanelHandler),
     (r"/storage/(.*)", storage.StorageHandler)

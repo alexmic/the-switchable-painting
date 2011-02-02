@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %} The Switchable Painting {% end %}
+
+{% block content %}
+
+    <div class="span-18 last" id="tsp-title">
+        The Switchable Painting
+    </div>
+    <div class="span-18">
+       <p>
+        The Switchable Painting uses AR technology and gesture recognition so you can explore works of art on your mobile phone.
+       </p>
+    </div>
+    <div class="span-18">
+        <div class="span-18 header">
+            Simulated image coming from mobile phone
+        </div>
+        <div id="sim-image">
+            <img src="/storage/{{simid}}" />
+        </div>
+        <br>
+        <div class="span-18 header">
+            Database image rankings
+        </div>
+        <div id="sim-db-images">
+            {% for img in imgs %}
+                {{ modules.SimImage(img) }}
+            {% end %}
+        </div> 
+    </div>
+{% end %}
+
+{% block template-scripts %}
+    <script src="{{ static_url('js/tsp.sim.js') }}" type="text/javascript"></script>
+{% end %}
+

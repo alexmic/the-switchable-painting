@@ -2,10 +2,11 @@ package http;
 
 import http.core.HttpDispatcher;
 import http.core.HttpServer;
-import http.core.handler.base.CollectionHandler;
-import http.core.handler.base.MatchHandler;
-import http.core.handler.base.PaintingHandler;
-import http.core.handler.base.TestFDHandler;
+import http.core.handler.CollectionHandler;
+import http.core.handler.MatchHandler;
+import http.core.handler.PaintingHandler;
+import http.core.handler.SimMatchHandler;
+import http.core.handler.TestFDHandler;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -13,6 +14,7 @@ import java.net.UnknownHostException;
 import logging.Log;
 import logging.handler.base.ConsoleLogHandler;
 import logging.handler.base.FileLogHandler;
+import model.Painting;
 
 import com.google.code.morphia.Datastore;
 import com.google.code.morphia.Morphia;
@@ -79,7 +81,7 @@ public class ServerMain
 		
 		// Mongo + Morphia
 		Morphia morphia = new Morphia();
-		//morphia.map(Painting.class);
+		morphia.map(Painting.class);
 		
 		// Change the hardcoded DB and url to match config file (which is not existent so far.).
 		Datastore ds = null;
@@ -101,8 +103,9 @@ public class ServerMain
 		// Wire up the routes.
 		HttpDispatcher dispatcher = new HttpDispatcher();
 		dispatcher.addRoute("/painting", new TestFDHandler(ds))
-		  		  .addRoute("/match", new MatchHandler(ds))
-		  		  .addRoute("/collection", new CollectionHandler(ds));
+		  		  .addRoute("/match", new SimMatchHandler(ds))
+		  		  .addRoute("/collection", new CollectionHandler(ds))
+		          .ignore("/favicon.ico");
 		
 		// Returning false immediately means that this call has failed, otherwise this call will hang since the
 		// server loop will be entered.

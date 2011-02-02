@@ -48,7 +48,7 @@ public class HttpServer
 		}
 		
 		//Server loop
-		ExecutorService threadPool = Executors.newFixedThreadPool(45);
+		ExecutorService threadPool = Executors.newFixedThreadPool(25);
 		Log.debug("Server started succesfully.");
 		while (true) {
 			Socket connectionSocket;

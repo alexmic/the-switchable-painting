@@ -7,10 +7,28 @@ from tornado.escape import json_encode, json_decode
 import tornado.web
 import tornado.ioloop
 
+class SimPanelHandler(base.BaseHandler):
+    
+    def on_service_response(self, http_response):
+        if http_response.code == 200:
+            json_response = json_decode(http_response.body)
+            self.render("sim.html", simid=json_response["simid"], imgs=json_response["imgs"])
+        else:
+            self.write("Hm, error in sim matching.")
+            
+    @tornado.web.asynchronous
+    def base_get(self):
+        """ Renders landing page. """
+        service = ORSService().sim_match(self.on_service_response)
+
+    def base_post(self):
+        """ Not implemented. """
+        pass
+
 class MainPanelHandler(base.BaseHandler):
     
     def base_get(self):
-        """ Renders landing page. """
+        """ Renders sim page. """
         self.render("main.html")
     
     def base_post(self):
@@ -62,13 +80,22 @@ class UploadPanelHandler(base.BaseHandler):
                                    "last":False})
             self.write(chunk)
             self.flush()
-            service = ORSService()
-            if len(file) == 1:
-                id = file[0].split(".")[0]
-                service.put_painting(id, self.async_callback(self.on_service_response))
-            else:
-                self.write(self.make_chunk({"success":False, "next_msg":"No file selected for upload.", "last":True}))
+            title = self.get_argument("painting-title")
+            artist = self.get_argument("painting-artist")
+            if not title:
+                self.write(self.make_chunk({"success":False, "next_msg":"Please specify the painting's title.", "last":True}))
                 self.finish()
+            elif not artist:
+                self.write(self.make_chunk({"success":False, "next_msg":"Please specify the artist.", "last":True}))
+                self.finish()
+            else:
+                service = ORSService()
+                if len(file) == 1:
+                    id = file[0].split(".")[0]
+                    service.put_painting(id, title, artist, self.async_callback(self.on_service_response))
+                else:
+                    self.write(self.make_chunk({"success":False, "next_msg":"No file selected for upload.", "last":True}))
+                    self.finish()
         except NullRequestError, (instance):
             self.log.debug(instance.err_msg)
             self.write(self.make_chunk({"success":False, next_msg:"Empty request received.", "last":True}))

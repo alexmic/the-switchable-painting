@@ -3,6 +3,8 @@ package http.core;
 import http.core.handler.Handler;
 import http.exception.HttpHandlerErrorException;
 import http.exception.HttpRouteErrorException;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,10 +18,12 @@ import java.util.Map;
 public class HttpDispatcher {
 	
 	private Map<String, Handler> routes;
+	private ArrayList<String> blacklist;
 	
 	public HttpDispatcher()
 	{
 		routes = new HashMap<String, Handler>();
+		blacklist = new ArrayList<String>();
 	}
 	
 	public HttpDispatcher addRoute(String route, Handler handler)
@@ -28,11 +32,18 @@ public class HttpDispatcher {
 		return this;
 	}
 	
+	public HttpDispatcher ignore(String route) 
+	{
+		blacklist.add(route);
+		return this;
+	}
+	
 	public String route(HttpRequest request) throws HttpRouteErrorException, HttpHandlerErrorException
 	{
 		if (request == null)
 			throw new HttpRouteErrorException("Received null HTTP request.");
 		String baseURI = request.getURI().split("\\?")[0];
+		if (blacklist.contains(baseURI)) return "";
 		if (routes.containsKey(baseURI)) {
 			return _route(routes.get(baseURI), request);
 		} else {

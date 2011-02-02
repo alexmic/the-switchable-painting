@@ -72,7 +72,7 @@ public class HttpJob implements Runnable
 			try {
 				socket.close();
 			} catch (IOException e) {
-				e.printStackTrace();
+				Log.error("IOException occured when closing the socket: " + e.getMessage(), e.getStackTrace());
 			}
 		}
 	}

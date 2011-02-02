@@ -1,6 +1,5 @@
-package http.core.handler.base;
+package http.core.handler;
 
-import http.core.handler.Handler;
 
 import java.util.Map;
 

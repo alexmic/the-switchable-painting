@@ -1,5 +1,6 @@
 package cv.common;
 
+import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 
 public class Filter {
@@ -28,15 +29,22 @@ public class Filter {
 	{
 		int w = image.getWidth();
 		int h = image.getHeight();
-		for (int x = 0; x < w; ++x)
-		{
-			for (int y = 0; y < h; ++y)
-			{
+		for (int x = 0; x < w; ++x) {
+			for (int y = 0; y < h; ++y) {
 				int avg = avg(image.getRGB(x, y));
 				image.setRGB(x, y, avg);
 			}
 		}
 		return image;
+	}
+	
+	public static BufferedImage grayScaleGC(BufferedImage image)
+	{
+		BufferedImage gImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_BYTE_GRAY);  
+		Graphics g = gImage.getGraphics();  
+		g.drawImage(image, 0, 0, null);  
+		g.dispose();  
+		return gImage;
 	}
 	
 }

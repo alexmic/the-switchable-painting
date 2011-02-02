@@ -5,10 +5,10 @@ import java.util.Collections;
 
 public class Fast12 {
 	
-	public static FastCorner[] detect(int[][] image, int w, int h, int threshold, int N)
+	public static FeaturePoint[] detect(int[][] image, int w, int h, int threshold, int N)
 	{
 		// um.. guessestimate number of corners.
-		FastCorner[] corners = new FastCorner[10000];
+		FeaturePoint[] corners = new FeaturePoint[10000];
 		int count = 0;
 		for (int y = 4; y < h - 4; ++y) {
 			for (int x = 4; x < w - 4; ++x) {
@@ -1527,7 +1527,7 @@ public class Fast12 {
 				   continue;
 				 else
 				  continue;
-				corners[count] = new FastCorner(x, y);
+				corners[count] = new FeaturePoint(x, y);
 				count++;
 			}
 		}
@@ -1536,7 +1536,7 @@ public class Fast12 {
 			int y = corners[i].y();
 			corners[i].score(cornerScore(image, x, y));
 		}
-		FastCorner[] ret = Arrays.copyOf(corners, count);
+		FeaturePoint[] ret = Arrays.copyOf(corners, count);
 		Arrays.sort(ret, Collections.reverseOrder());
 		return Arrays.copyOf(ret, (N < count)?N:count);
 	}

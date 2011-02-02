@@ -1,4 +1,6 @@
-package http.core.handler.base;
+package http.core.handler;
+
+import http.exception.HttpHandlerErrorException;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -6,13 +8,16 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Map;
 import javax.imageio.ImageIO;
+import model.Painting;
 import util.json.JSONObject;
 import com.google.code.morphia.Datastore;
 import cv.common.Filter;
+import cv.descriptor.FeatureVector;
+import cv.descriptor.strategy.Context;
+import cv.descriptor.strategy.DescriptorContext;
+import cv.descriptor.strategy.ihistogram.HistogramDescriptorStrategy;
 import cv.detector.fast.Fast12;
-import cv.detector.fast.FastCorner;
-import http.core.handler.Handler;
-import http.exception.HttpHandlerErrorException;
+import cv.detector.fast.FeaturePoint;
 
 public class TestFDHandler implements Handler {
 	
@@ -53,8 +58,9 @@ public class TestFDHandler implements Handler {
 			String drawnImgPath = path + "/" + pIDChars[0] + "/" + pIDChars[1] + "/" + pID + "_CORNERS." + ext;
 			BufferedImage img;
 			try {
+				img = ImageIO.read(new File(imgPath + "." + ext));
 				long start = System.currentTimeMillis();
-				img = Filter.grayScale(ImageIO.read(new File(imgPath + "." + ext)));
+				img = Filter.grayScale(img);
 				System.out.println("Time for grayscale: " + (System.currentTimeMillis() - start));
 				
 				// Perform feature detection using FAST12.
@@ -62,27 +68,53 @@ public class TestFDHandler implements Handler {
 				int h = img.getHeight();
 				int[][] pixels = new int[h][w];
 				start = System.currentTimeMillis();
+				
+				// This needs to be fixed.
 				for (int y = 0; y < h; ++y) {
 					for (int x = 0; x < w; ++x) {
 						pixels[y][x] = img.getRGB(x, y) & 0xFF;
 					}
 				}
+				
 				System.out.println("Time for copy: " + (System.currentTimeMillis() - start));
 				start = System.currentTimeMillis();
-				FastCorner[] results = Fast12.detect(pixels, w, h, 18, 250);
+				FeaturePoint[] featurePoints = Fast12.detect(pixels, w, h, 18, 350);
 				System.out.println("Time for FAST: " + (System.currentTimeMillis() - start));
+				start = System.currentTimeMillis();
 				
-				// Draw up some rectangles to have something to demonstrate.
+				// Perform feature description using either a simple histogram or SIFT or SURF.
+				Context descriptorContext = null;
+				if (requestParams.containsKey("ds")) {
+					int keycode = Integer.valueOf(requestParams.get("ds"));
+					descriptorContext = new DescriptorContext(keycode);
+				} else {
+					descriptorContext = new DescriptorContext(new HistogramDescriptorStrategy());
+				}
+				FeatureVector[] vectors = descriptorContext.getFeatureVectors(featurePoints, pixels);
+				System.out.println("Time for description using -> " 
+									+ descriptorContext.getStrategy().toString() 
+									+ ": " + (System.currentTimeMillis() - start));
+
+				//Draw up some rectangles to have something to demonstrate.
 				Graphics2D g2 = img.createGraphics();
 				g2.setColor(new Color(250, 0 ,0));
-				int count = results.length;
+				int count = featurePoints.length;
 				for (int i = 0; i < count; ++i) {
-					FastCorner c = results[i];
-					g2.drawRect(c.x(), c.y(), 1, 1);
+					FeaturePoint p = featurePoints[i];
+					g2.drawRect(p.x(), p.y(), 1, 1);
 				}
+				
+				Painting newPainting = new Painting()
+									   .setPaintingId(pID)
+									   .setArtist(requestParams.containsKey("artist")? requestParams.get("artist"): "Unknown")
+									   .setTitle(requestParams.containsKey("title")? requestParams.get("title"): "Untitled")
+									   .setFeatureVectors(vectors);
+				
+				ds.save(newPainting);
 				File out = new File(drawnImgPath);
 				ImageIO.write(img, "jpg", out);
 				return new JSONObject().put("s", true).put("id", pID).put("msg", "").toString();
+			
 			} catch (Exception e) {
 				// Wrap up any exceptions to be handled in the HttpJob. Exceptions are errors
 				// which will lead to an error response (i.e not 200) and will not contain
