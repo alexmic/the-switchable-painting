@@ -14,7 +14,7 @@ ORS_MAIN_DIR=~/Desktop/Dev/IndividualProject/ors
 # cd into the main dir and invoke buildr.
 cd $ORS_MAIN_DIR
 echo "Building ORS with buildr.."
-buildr package
+buildr release
 retCode=$?
 if [[ $retCode -ne 0 ]]
 then
