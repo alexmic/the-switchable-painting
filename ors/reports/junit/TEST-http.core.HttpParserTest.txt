@@ -1,40 +1,13 @@
 Testsuite: http.core.HttpParserTest
-Tests run: 10, Failures: 0, Errors: 4, Time elapsed: 0.032 sec
+Tests run: 10, Failures: 0, Errors: 0, Time elapsed: 0.039 sec
 
 Testcase: testOKGETRequest took 0.003 sec
-Testcase: testOKPUTRequest took 0.001 sec
-Testcase: testOKPOSTRequest took 0.001 sec
-Testcase: testOKDELETERequest took 0.002 sec
+Testcase: testOKPUTRequest took 0.003 sec
+Testcase: testOKPOSTRequest took 0.003 sec
+Testcase: testOKDELETERequest took 0 sec
 Testcase: testOKGETParameterParse took 0.001 sec
 Testcase: testOKPOSTParameterParse took 0 sec
-Testcase: testBadHTTPMethod took 0 sec
-	Caused an ERROR
-HTTP method not recognized.
-http.exception.HttpParseErrorException: HTTP method not recognized.
-	at http.core.HttpParser._parse(HttpParser.java:123)
-	at http.core.HttpParser.getHttpRequest(HttpParser.java:35)
-	at http.core.HttpParserTest.testBadHTTPMethod(HttpParserTest.java:109)
-
-Testcase: testBadHTTPRequestLine took 0 sec
-	Caused an ERROR
-Error in HTTP Request-line format.
-http.exception.HttpParseErrorException: Error in HTTP Request-line format.
-	at http.core.HttpParser._parse(HttpParser.java:126)
-	at http.core.HttpParser.getHttpRequest(HttpParser.java:35)
-	at http.core.HttpParserTest.testBadHTTPRequestLine(HttpParserTest.java:116)
-
+Testcase: testBadHTTPMethod took 0.001 sec
+Testcase: testBadHTTPRequestLine took 0.001 sec
 Testcase: testNullInputStream took 0 sec
-	Caused an ERROR
-Inputstream was null
-http.exception.HttpParseErrorException: Inputstream was null
-	at http.core.HttpParser.<init>(HttpParser.java:29)
-	at http.core.HttpParserTest.testNullInputStream(HttpParserTest.java:122)
-
-Testcase: testBadHTTPParameters took 0.001 sec
-	Caused an ERROR
-Error in HTTP request parameters format.
-http.exception.HttpParseErrorException: Error in HTTP request parameters format.
-	at http.core.HttpParser._parse(HttpParser.java:116)
-	at http.core.HttpParser.getHttpRequest(HttpParser.java:35)
-	at http.core.HttpParserTest.testBadHTTPParameters(HttpParserTest.java:130)
-
+Testcase: testBadHTTPParameters took 0 sec

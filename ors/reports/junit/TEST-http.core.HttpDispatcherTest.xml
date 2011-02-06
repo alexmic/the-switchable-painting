@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuite errors="4" failures="0" hostname="Ninja.local" name="http.core.HttpDispatcherTest" tests="7" time="0.035" timestamp="2011-02-06T15:24:40">
+<testsuite errors="0" failures="0" hostname="Ninja.local" name="http.core.HttpDispatcherTest" tests="7" time="0.023" timestamp="2011-02-06T16:13:27">
   <properties>
     <property name="java.runtime.name" value="Java(TM) SE Runtime Environment" />
     <property name="sun.boot.library.path" value="/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Libraries" />
@@ -67,34 +67,13 @@
     <property name="ftp.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16" />
     <property name="sun.cpu.isalist" value="" />
   </properties>
-  <testcase classname="http.core.HttpDispatcherTest" name="testExistingGETHandlerDispatch" time="0.0030" />
-  <testcase classname="http.core.HttpDispatcherTest" name="testExistingPOSTHandlerDispatch" time="0.0020" />
-  <testcase classname="http.core.HttpDispatcherTest" name="testNotExistingGETHandlerDispatch" time="0.0070">
-    <error message="Handler not recognized." type="http.exception.HttpRouteErrorException">http.exception.HttpRouteErrorException: Handler not recognized.
-	at http.core.HttpDispatcher.route(HttpDispatcher.java:50)
-	at http.core.HttpDispatcherTest.testNotExistingGETHandlerDispatch(HttpDispatcherTest.java:110)
-</error>
-  </testcase>
-  <testcase classname="http.core.HttpDispatcherTest" name="testNotExistingPOSTHandlerDispatch" time="0.0030">
-    <error message="Handler not recognized." type="http.exception.HttpRouteErrorException">http.exception.HttpRouteErrorException: Handler not recognized.
-	at http.core.HttpDispatcher.route(HttpDispatcher.java:50)
-	at http.core.HttpDispatcherTest.testNotExistingPOSTHandlerDispatch(HttpDispatcherTest.java:120)
-</error>
-  </testcase>
-  <testcase classname="http.core.HttpDispatcherTest" name="testNullRequest" time="0.0030">
-    <error message="Received null HTTP request." type="http.exception.HttpRouteErrorException">http.exception.HttpRouteErrorException: Received null HTTP request.
-	at http.core.HttpDispatcher.route(HttpDispatcher.java:44)
-	at http.core.HttpDispatcherTest.testNullRequest(HttpDispatcherTest.java:130)
-</error>
-  </testcase>
+  <testcase classname="http.core.HttpDispatcherTest" name="testExistingGETHandlerDispatch" time="0.0040" />
+  <testcase classname="http.core.HttpDispatcherTest" name="testExistingPOSTHandlerDispatch" time="0.0" />
+  <testcase classname="http.core.HttpDispatcherTest" name="testNotExistingGETHandlerDispatch" time="0.0" />
+  <testcase classname="http.core.HttpDispatcherTest" name="testNotExistingPOSTHandlerDispatch" time="0.0" />
+  <testcase classname="http.core.HttpDispatcherTest" name="testNullRequest" time="0.0" />
   <testcase classname="http.core.HttpDispatcherTest" name="testExistingMethodDispatch" time="0.0" />
-  <testcase classname="http.core.HttpDispatcherTest" name="testNotExistingMethodDispatch" time="0.01">
-    <error message="Method not recognized." type="http.exception.HttpRouteErrorException">http.exception.HttpRouteErrorException: Method not recognized.
-	at http.core.HttpDispatcher._route(HttpDispatcher.java:66)
-	at http.core.HttpDispatcher.route(HttpDispatcher.java:48)
-	at http.core.HttpDispatcherTest.testNotExistingMethodDispatch(HttpDispatcherTest.java:165)
-</error>
-  </testcase>
+  <testcase classname="http.core.HttpDispatcherTest" name="testNotExistingMethodDispatch" time="0.0010" />
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>
