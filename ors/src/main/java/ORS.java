@@ -1,4 +1,3 @@
-package http;
 
 import http.core.HttpDispatcher;
 import http.core.HttpServer;
@@ -27,7 +26,7 @@ import com.mongodb.MongoException;
  *
  */
 
-public class ServerMain 
+public class ORS
 {
 	public static void main(String[] args)
 	{

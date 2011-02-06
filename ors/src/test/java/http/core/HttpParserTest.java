@@ -1,17 +1,15 @@
-package http;
+package http.core;
 
-import static org.junit.Assert.assertEquals;
 import http.core.HttpParser;
 import http.core.HttpRequest;
 import http.exception.HttpParseErrorException;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
 import org.junit.Test;
+import static org.junit.Assert.*;
 
-public class HttpParserTest {
+public class HttpParserTest{
 
 	private HttpParser parser;
 	private final String CRLF= "\r\n";

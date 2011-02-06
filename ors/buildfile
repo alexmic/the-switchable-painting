@@ -6,16 +6,25 @@
 
 repositories.remote << 'http://www.ibiblio.org/maven2'
 
+VERSION_NUMBER = '0.0.0-SNAPSHOT'
+
+MORPHIA = 'com.google.code:morphia:jar:0.98'
+MONGO = 'org.mongodb:mongo-java-driver:jar:2.4'
+EASYMOCK = 'easymock:easymock:jar:2.0'
+CGLIB = 'cglib:cglib-nodep:jar:2.2'
+OBJENESIS = 'org.objenesis:objenesis:jar:1.2'
+PROXYTOYS = 'proxytoys:proxytoys:jar:0.2.1'
+
+download artifact(MORPHIA) => 'http://morphia.googlecode.com/files/morphia-0.98.jar'
+
 define 'ors' do
+  compile.with MORPHIA, MONGO, EASYMOCK, OBJENESIS, CGLIB, PROXYTOYS
   time = Time.new
-  version = 0
-  File.open("version", "r+") do |f|
-    version = f.gets.to_f + 0.01
-    f.rewind
-    f.puts version.to_s
-  end
-  project.version = version.to_s + "-" + time.day.to_s + time.month.to_s + time.year.to_s + "." + time.hour.to_s + time.min.to_s
-  package :jar
+  project.version = VERSION_NUMBER + "-" + time.day.to_s + time.month.to_s + time.year.to_s + "." + time.hour.to_s + time.min.to_s
+  package(:jar).with(:manifest=>manifest.merge({'Main-Class'=>'ORS', 'Class-Path'=> compile.dependencies.join(" ")}))
+  #File.open("version", "r+") do |f|
+  #  version = f.gets.to_f + 0.01
+  #  f.rewind
+  #  f.puts version.to_s
+  #end
 end
-
-

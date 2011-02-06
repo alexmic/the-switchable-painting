@@ -2,14 +2,12 @@ package logging;
 
 import logging.Log;
 import logging.handler.LogHandler;
-
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import static org.easymock.EasyMock.*;
 
-public class LoggerTest {
+public class LoggerTest{
 
 	private static LogHandler errorHandler;
 	private static LogHandler infoHandler;

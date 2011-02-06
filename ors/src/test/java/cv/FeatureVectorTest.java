@@ -1,15 +1,13 @@
 package cv;
 
-import static org.junit.Assert.*;
-
+import junit.framework.TestCase;
 import org.junit.Test;
-
 import cv.descriptor.FeatureVector;
 import cv.descriptor.FeatureVectorType;
 import cv.descriptor.IHFeatureVector;
 
 
-public class FeatureVectorTest {
+public class FeatureVectorTest extends TestCase{
 
 	@Test
 	public void testIsEquivalent()

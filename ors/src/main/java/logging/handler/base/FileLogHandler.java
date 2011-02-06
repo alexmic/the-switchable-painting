@@ -13,6 +13,10 @@ public class FileLogHandler extends BaseLogHandler {
     public FileLogHandler() throws IOException
 	{
 		if (error == null) {
+			File dir = new File("log");
+			if ((dir.exists() && !dir.isDirectory()) || !dir.exists()) {
+				dir.mkdir();	
+			}
 			File f = new File("log/error.log");
 			f.createNewFile();
 			error = new BufferedWriter(new FileWriter(f, true));

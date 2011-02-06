@@ -1,19 +1,16 @@
-package http;
-
-import static org.junit.Assert.*;
+package http.core;
 
 import java.util.Map;
-
 import http.core.HttpDispatcher;
 import http.core.HttpRequest;
 import http.core.handler.Handler;
 import http.exception.HttpHandlerErrorException;
 import http.exception.HttpRouteErrorException;
-
 import org.junit.Before;
 import org.junit.Test;
+import static org.junit.Assert.*;
 
-public class HttpDispatcherTest {
+public class HttpDispatcherTest{
 
 	private HttpDispatcher dispatcher;
 

@@ -1,0 +1,35 @@
+Testsuite: http.core.HttpDispatcherTest
+Tests run: 7, Failures: 0, Errors: 4, Time elapsed: 0.035 sec
+
+Testcase: testExistingGETHandlerDispatch took 0.002 sec
+Testcase: testExistingPOSTHandlerDispatch took 0.001 sec
+Testcase: testNotExistingGETHandlerDispatch took 0.003 sec
+	Caused an ERROR
+Handler not recognized.
+http.exception.HttpRouteErrorException: Handler not recognized.
+	at http.core.HttpDispatcher.route(HttpDispatcher.java:50)
+	at http.core.HttpDispatcherTest.testNotExistingGETHandlerDispatch(HttpDispatcherTest.java:110)
+
+Testcase: testNotExistingPOSTHandlerDispatch took 0.001 sec
+	Caused an ERROR
+Handler not recognized.
+http.exception.HttpRouteErrorException: Handler not recognized.
+	at http.core.HttpDispatcher.route(HttpDispatcher.java:50)
+	at http.core.HttpDispatcherTest.testNotExistingPOSTHandlerDispatch(HttpDispatcherTest.java:120)
+
+Testcase: testNullRequest took 0 sec
+	Caused an ERROR
+Received null HTTP request.
+http.exception.HttpRouteErrorException: Received null HTTP request.
+	at http.core.HttpDispatcher.route(HttpDispatcher.java:44)
+	at http.core.HttpDispatcherTest.testNullRequest(HttpDispatcherTest.java:130)
+
+Testcase: testExistingMethodDispatch took 0 sec
+Testcase: testNotExistingMethodDispatch took 0 sec
+	Caused an ERROR
+Method not recognized.
+http.exception.HttpRouteErrorException: Method not recognized.
+	at http.core.HttpDispatcher._route(HttpDispatcher.java:66)
+	at http.core.HttpDispatcher.route(HttpDispatcher.java:48)
+	at http.core.HttpDispatcherTest.testNotExistingMethodDispatch(HttpDispatcherTest.java:165)
+
