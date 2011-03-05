@@ -1,5 +1,8 @@
 package cv.descriptor.strategy.ihistogram;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import cv.descriptor.FeatureVector;
 import cv.descriptor.IHFeatureVector;
 import cv.descriptor.strategy.Strategy;
@@ -15,14 +18,14 @@ public class HistogramDescriptorStrategy implements Strategy{
 	}
 
 	@Override
-	public FeatureVector[] calcFeatureVectors(FeaturePoint[] featurePoints, int[][] pixels) {
-		FeatureVector[] vectors = new FeatureVector[featurePoints.length];
+	public List<FeatureVector> calcFeatureVectors(List<FeaturePoint> featurePoints, double[][] pixels) {
+		List<FeatureVector> vectors = new ArrayList<FeatureVector>();
 		int numBuckets = 255 / BUCKET_SIZE;
 		int h = pixels.length;
 		int w = pixels[0].length;
-		for (int i = 0; i < featurePoints.length; ++i) {
+		for (int i = 0; i < featurePoints.size(); ++i) {
 			float[] descriptor = new float[numBuckets];
-			FeaturePoint p = featurePoints[i];
+			FeaturePoint p = featurePoints.get(i);
 			int x = p.x();
 			int y = p.y();
 			
@@ -33,29 +36,12 @@ public class HistogramDescriptorStrategy implements Strategy{
 						if (j == 0 && k == 0) {
 							continue;
 						} else {
-							descriptor[pixels[y + j][x + k] / numBuckets]++; 
+							descriptor[(int) pixels[y + j][x + k] / numBuckets]++; 
 						}
 					}
 				}
 			}
-			/*descriptor[pixels[y - 3][x] / numBuckets]++; 
-			descriptor[pixels[y - 3][x + 1] / numBuckets]++;
-			descriptor[pixels[y - 2][x + 2] / numBuckets]++;
-			descriptor[pixels[y - 1][x + 3] / numBuckets]++;
-			descriptor[pixels[y][x + 3] / numBuckets]++;
-			descriptor[pixels[y + 1][x + 3] / numBuckets]++;
-			descriptor[pixels[y + 2][x + 2] / numBuckets]++;
-			descriptor[pixels[y + 3][x + 1] / numBuckets]++;
-			descriptor[pixels[y + 3][x] / numBuckets]++;
-			descriptor[pixels[y + 3][x - 1] / numBuckets]++;
-			descriptor[pixels[y + 2][x - 2] / numBuckets]++;
-			descriptor[pixels[y + 1][x - 3] / numBuckets]++;
-			descriptor[pixels[y][x - 3] / numBuckets]++;
-			descriptor[pixels[y - 1][x - 3] / numBuckets]++;
-			descriptor[pixels[y - 2][x - 2] / numBuckets]++;
-			descriptor[pixels[y - 3][x - 1] / numBuckets]++;
-			*/		
-			vectors[i] = new IHFeatureVector(x, y, descriptor);
+			vectors.add(new IHFeatureVector(x, y, descriptor));
 			}
 		return vectors;
 	}

@@ -1,5 +1,7 @@
 package model;
 
+import java.util.List;
+
 import com.google.code.morphia.annotations.*;
 import com.google.code.morphia.emul.org.bson.types.ObjectId;
 import cv.descriptor.FeatureVector;
@@ -12,7 +14,8 @@ public class Painting {
 	private String artist;
 	private String paintingId;
 	private int descriptorType = 1;
-	@Embedded private FeatureVector[] featureVectors;
+	private int[] scaleIndices = null;
+	@Embedded private List<FeatureVector> featureVectors;
 	
 	public Painting setDescriptorType(int type)
 	{
@@ -43,9 +46,15 @@ public class Painting {
 		return this;
 	}
 	
-	public Painting setFeatureVectors(FeatureVector[] featureVectors)
+	public Painting setFeatureVectors(List<FeatureVector> featureVectors)
 	{
 		this.featureVectors = featureVectors;
+		return this;
+	}
+	
+	public Painting setScaleIndices(int[] indexes)
+	{
+		this.scaleIndices = indexes;
 		return this;
 	}
 	
@@ -59,7 +68,7 @@ public class Painting {
 		return this.artist;
 	}
 	
-	public FeatureVector[] getFeatureVectors()
+	public List<FeatureVector> getFeatureVectors()
 	{
 		return this.featureVectors;
 	}
@@ -74,18 +83,37 @@ public class Painting {
 		return this.paintingId;
 	}
 	
+	public int[] getScaleIndices()
+	{
+		return this.scaleIndices;
+	}
+	
 	public float getMatchScore(Painting painting, float threshold)
 	{
 		int matched = 0;
-		double minDistance = Double.MAX_VALUE;
-		FeatureVector[] otherFeatureVectors = painting.getFeatureVectors();
+		double d1 = Double.MAX_VALUE;
+		double d2 = Double.MAX_VALUE;
+		List<FeatureVector> otherFeatureVectors = painting.getFeatureVectors();
 		for (FeatureVector anfv : otherFeatureVectors) {
-			for (int i = 0; i < this.featureVectors.length; ++i) {
-				minDistance = Math.min(this.featureVectors[i].getDistance(anfv), minDistance);
+			for (int i = 0; i < this.featureVectors.size(); ++i) {
+				double vectorDistance = this.featureVectors.get(i).getVectorDistance(anfv);
+				if (Double.isNaN(vectorDistance))
+					continue;
+				if (d1 < Double.MAX_VALUE && d2 < Double.MAX_VALUE) {
+					if (vectorDistance <= d1) {
+						d1 = vectorDistance;
+					} else if (vectorDistance <= d2) {
+						d2 = vectorDistance;
+					}
+				} else if (d1 == Double.MAX_VALUE) {
+					d1 = vectorDistance;
+				} else if (d2 == Double.MAX_VALUE) {
+					d2 = vectorDistance;
+				}
 			}
-			if (minDistance < threshold) matched++;
-			minDistance = Double.MAX_VALUE;
+			if (d1 < threshold) matched++;
+			d1 = d2 = Double.MAX_VALUE;
 		}
-		return (float) matched / otherFeatureVectors.length;
+		return (float) matched / otherFeatureVectors.size();
 	}
 }

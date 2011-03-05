@@ -1,9 +1,10 @@
 package cv.descriptor.strategy;
 
+import java.util.List;
+
 import cv.descriptor.FeatureVector;
 import cv.descriptor.strategy.ihistogram.HistogramDescriptorStrategy;
 import cv.descriptor.strategy.sift.SiftDescriptorStrategy;
-import cv.descriptor.strategy.surf.SurfDescriptorStrategy;
 import cv.detector.fast.FeaturePoint;
 
 public class DescriptorContext implements Context {
@@ -26,13 +27,11 @@ public class DescriptorContext implements Context {
 			strategy = new HistogramDescriptorStrategy();
 		} else if (keycode == DESCRIPTOR_STRATEGIES.SIFT.ordinal()) {
 			strategy = new SiftDescriptorStrategy();
-		} else if (keycode == DESCRIPTOR_STRATEGIES.SURF.ordinal()) {
-			strategy = new SurfDescriptorStrategy();
 		}
 	}
 	
 	@Override
-	public FeatureVector[] getFeatureVectors(FeaturePoint[] featurePoints, int[][] pixels) 
+	public List<FeatureVector> getFeatureVectors(List<FeaturePoint> featurePoints, double[][] pixels) 
 	{
 		return strategy.calcFeatureVectors(featurePoints, pixels);
 	}

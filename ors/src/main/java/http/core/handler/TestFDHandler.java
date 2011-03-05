@@ -2,20 +2,17 @@ package http.core.handler;
 
 import http.exception.HttpHandlerErrorException;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import javax.imageio.ImageIO;
 import model.Painting;
 import util.json.JSONObject;
 import com.google.code.morphia.Datastore;
-import cv.common.Filter;
 import cv.descriptor.FeatureVector;
 import cv.descriptor.strategy.Context;
 import cv.descriptor.strategy.DescriptorContext;
-import cv.detector.fast.Fast12;
+import cv.detector.MultiScaleFast12;
 import cv.detector.fast.FeaturePoint;
 
 public class TestFDHandler implements Handler {
@@ -54,71 +51,71 @@ public class TestFDHandler implements Handler {
 					break;
 				}
 			}
-			String drawnImgPath = path + "/" + pIDChars[0] + "/" + pIDChars[1] + "/" + pID + "_CORNERS." + ext;
-			BufferedImage img;
+			//String drawnImgPath = path + "/" + pIDChars[0] + "/" + pIDChars[1] + "/" + pID + "_CORNERS." + ext;
+			//BufferedImage img;
 			try {
-				img = ImageIO.read(new File(imgPath + "." + ext));
-				long start = System.currentTimeMillis();
-				img = Filter.grayScale(img);
-				System.out.println("Time for grayscale: " + (System.currentTimeMillis() - start));
 				
-				// Perform feature detection using FAST12.
-				int w = img.getWidth();
-				int h = img.getHeight();
-				int[][] pixels = new int[h][w];
-				start = System.currentTimeMillis();
-				
-				// This needs to be fixed.
-				for (int y = 0; y < h; ++y) {
-					for (int x = 0; x < w; ++x) {
-						pixels[y][x] = img.getRGB(x, y) & 0xFF;
-					}
-				}
-				
-				System.out.println("Time for copy: " + (System.currentTimeMillis() - start));
-				start = System.currentTimeMillis();
-				FeaturePoint[] featurePoints = Fast12.detect(pixels, w, h, 18, 350);
-				System.out.println("Time for FAST: " + (System.currentTimeMillis() - start));
-				start = System.currentTimeMillis();
-				
-				// Perform feature description using either a simple histogram or SIFT or SURF.
+				// Create the descriptor strategy context.
 				Context descriptorContext = null;
 				int keycode = 0;
 				if (requestParams.containsKey("s")) {
 					keycode = Integer.valueOf(requestParams.get("s"));
 				} 
 				descriptorContext = new DescriptorContext(keycode);
-				FeatureVector[] vectors = descriptorContext.getFeatureVectors(featurePoints, pixels);
-				System.out.println("Time for description using -> " 
-									+ descriptorContext.getStrategy().toString() 
-									+ ": " + (System.currentTimeMillis() - start));
-
-				//Draw up some rectangles to have something to demonstrate.
-				Graphics2D g2 = img.createGraphics();
-				g2.setColor(new Color(250, 0 ,0));
-				int count = featurePoints.length;
-				for (int i = 0; i < count; ++i) {
-					FeaturePoint p = featurePoints[i];
-					g2.drawRect(p.x(), p.y(), 1, 1);
+				
+				// Detect feature points at various scales and extract
+				// descriptors at each scale.
+				int levels = 7;
+				long start = System.currentTimeMillis();
+				MultiScaleFast12 msf = new MultiScaleFast12(imgPath + "." + ext, levels);
+				long stop = System.currentTimeMillis();
+				System.out.println("Multiscale FAST: " + (stop - start) + "ms.");
+				List<FeatureVector> multiScaleVectors = new ArrayList<FeatureVector>();
+				int[] scaleIndices = new int[levels];
+				int numVectors = 0;
+				for (int i = 0; i < levels; ++i) {
+					System.out.println("Pyramid level: " + i);
+					List<FeaturePoint> featurePoints = msf.getFeaturesAtLevel(i);
+					double[][] image = msf.getImageAtLevel(i);
+					start = System.currentTimeMillis();
+					List<FeatureVector> singleScaleVectors = descriptorContext.getFeatureVectors(featurePoints, image);
+					stop = System.currentTimeMillis();
+					System.out.println("SIFT for level " + i + ", " + singleScaleVectors.size() + " features: " + (stop - start) + "ms.");
+					scaleIndices[i] = numVectors + singleScaleVectors.size();
+					multiScaleVectors.addAll(singleScaleVectors);
+					numVectors += singleScaleVectors.size();
 				}
+				//for (FeatureVector fv : multiScaleVectors) {
+				//	for (float f : fv.descriptor()) 
+				//		System.out.println(f);
+				//}
+				//Draw up some rectangles to have something to demonstrate.
+				//Graphics2D g2 = img.createGraphics();
+				//g2.setColor(new Color(250, 0 ,0));
+				//int count = featurePoints.size();
+				//for (int i = 0; i < count; ++i) {
+				//	FeaturePoint p = featurePoints.get(i);
+				//	g2.drawRect(p.x(), p.y(), 1, 1);
+				//}
 				
 				Painting newPainting = new Painting()
 									   .setDescriptorType(keycode)
 									   .setPaintingId(pID)
 									   .setArtist(requestParams.containsKey("artist")? requestParams.get("artist"): "Unknown")
 									   .setTitle(requestParams.containsKey("title")? requestParams.get("title"): "Untitled")
-									   .setFeatureVectors(vectors);
-				
+									   .setFeatureVectors(multiScaleVectors)
+									   .setScaleIndices(scaleIndices);
 				ds.save(newPainting);
-				File out = new File(drawnImgPath);
-				ImageIO.write(img, "jpg", out);
+				//File out = new File(drawnImgPath);
+				//ImageIO.write(img, "jpg", out);
 				return new JSONObject().put("s", true).put("id", pID).put("msg", "").toString();
 			
 			} catch (Exception e) {
 				// Wrap up any exceptions to be handled in the HttpJob. Exceptions are errors
 				// which will lead to an error response (i.e not 200) and will not contain
 				// a response body.
-				throw new HttpHandlerErrorException(e);
+				e.printStackTrace();
+				throw new HttpHandlerErrorException(e.getMessage(), e);
 			}
 		} else {
 			// If not ID was found, then return an error msg in an 200 response,
@@ -126,7 +123,7 @@ public class TestFDHandler implements Handler {
 			try {
 				return new JSONObject().put("s", false).put("msg", "No id was found in request.").toString();
 			} catch(Exception e) {
-				throw new HttpHandlerErrorException(e);
+				throw new HttpHandlerErrorException(e.getMessage(), e);
 			}
 		}
 	}

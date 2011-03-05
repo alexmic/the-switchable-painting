@@ -7,8 +7,8 @@ import com.google.code.morphia.annotations.Embedded;
 @Embedded
 public abstract class FeatureVector {
 	
-	protected int x = -1;
-	protected int y = -1;
+	protected double x = -1;
+	protected double y = -1;
 	protected float[] descriptor = null;
 	
 	public FeatureVector()
@@ -16,19 +16,19 @@ public abstract class FeatureVector {
 		
 	}
 	
-	public FeatureVector(int x, int y, float[] descriptor) 
+	public FeatureVector(double x, double y, float[] descriptor) 
 	{
 		this.x = x;
 		this.y = y;
 		this.descriptor = descriptor;
 	}
 	
-	public int x()
+	public double x()
 	{
 		return x;
 	}
 	
-	public int y()
+	public double y()
 	{
 		return y;
 	}
@@ -56,7 +56,7 @@ public abstract class FeatureVector {
 	
 	public boolean isCompatibleWith(FeatureVector vector)
 	{
-		return this.type() == vector.type();
+		return this.type().equals(vector.type());
 	}
 	
 	public boolean isEquivalentWith(FeatureVector vector) 
@@ -66,7 +66,34 @@ public abstract class FeatureVector {
 			   && Arrays.equals(this.descriptor, vector.descriptor());
 	}
 
+	public double getVectorDistance(FeatureVector vector) 
+	{
+		if (badVector(vector)) return Double.MAX_VALUE;
+		float[] vDescriptor = vector.descriptor();
+		double sum = 0;
+		for (int i = 0; i < this.descriptor.length; ++i) {
+			double diff = this.descriptor[i] - vDescriptor[i];
+            sum += diff * diff; 
+		}
+		return Math.sqrt(sum);
+	}
+	
+	public double getPointDistance(FeatureVector vector)
+	{
+		if (badVector(vector)) return Double.MAX_VALUE;
+		return Math.sqrt(Math.pow((vector.x() - this.x), 2) + Math.pow((vector.y() - this.y), 2));
+	}
+	
+	private boolean badVector(FeatureVector vector)
+	{
+		float[] vDescriptor = vector.descriptor();
+		return !isCompatibleWith(vector) 
+			|| vDescriptor == null
+			|| vDescriptor.length == 0
+			|| this.descriptor == null
+			|| this.descriptor.length == 0;
+	}
+
 	public abstract FeatureVectorType type();
-	public abstract double getDistance(FeatureVector vector);
 	
 }

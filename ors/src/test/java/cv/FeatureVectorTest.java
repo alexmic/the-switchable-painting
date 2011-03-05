@@ -46,7 +46,7 @@ public class FeatureVectorTest extends TestCase{
 	{
 		IHFeatureVector fv1 = new IHFeatureVector(1, 1, new float[]{0f, 0f, 0f});
 		IHFeatureVector fv2 = new IHFeatureVector(1, 21, new float[]{4f, 0f, 3f});
-		assertTrue(fv1.getDistance(fv2) == 25);
+		assertTrue(fv1.getVectorDistance(fv2) == 25);
 	}
 	
 	@Test
@@ -61,12 +61,12 @@ public class FeatureVectorTest extends TestCase{
 			}
 
 			@Override
-			public double getDistance(FeatureVector vector) {
+			public double getVectorDistance(FeatureVector vector) {
 				return 0;
 			}
 			
 		};
-		assertEquals((Double) fv1.getDistance(fv2), (Double) Double.MAX_VALUE);
+		assertEquals((Double) fv1.getVectorDistance(fv2), (Double) Double.MAX_VALUE);
 	}
 	
 	@Test
@@ -74,7 +74,7 @@ public class FeatureVectorTest extends TestCase{
 	{
 		IHFeatureVector fv1 = new IHFeatureVector(1, 1, null);
 		IHFeatureVector fv2 = new IHFeatureVector(1, 21, new float[]{1f, 1f});
-		assertEquals((Double) fv1.getDistance(fv2), (Double) Double.MAX_VALUE);
+		assertEquals((Double) fv1.getVectorDistance(fv2), (Double) Double.MAX_VALUE);
 	}
 	
 }

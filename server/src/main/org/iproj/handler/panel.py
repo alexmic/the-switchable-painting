@@ -27,10 +27,10 @@ class SimPanelHandler(base.BaseHandler):
     @tornado.web.asynchronous
     def base_get(self, strategy):
         """ Renders landing page. """
-        strategy = int(strategy or 1)
-        if strategy not in [1, 2, 3]:
-            strategy = 1
-        service = ORSService().sim_match(strategy - 1, self.on_service_response)
+        strategy = int(strategy or 0)
+        if strategy not in [0, 1]:
+            strategy = 0
+        service = ORSService().sim_match(strategy, self.on_service_response)
 
     def base_post(self):
         """ Not implemented. """
@@ -114,12 +114,12 @@ class UploadPanelHandler(base.BaseHandler):
                 else:
                     self.write(self.make_chunk({"success":False, "next_msg":"No file selected for upload.", "last":True}))
                     self.finish()
-        except (NullRequestError, SizeLimitExceededError, WrongMimetypeError, WronExtensionError), e:
+        except (NullRequestError, SizeLimitExceededError, WrongMimetypeError, WrongExtensionError), e:
             self.log.error(e.err_msg)
-            self.write(self.make_chunk({"success":False, next_msg:e.err_msg, "last":True}))
+            self.write(self.make_chunk({"success":False, "next_msg":e.err_msg, "last":True}))
             self.finish()
         except Exception, e:
             self.log.error(e)
-            self.write(self.make_chunk({"success":False, next_msg:"An error occured. Please try again.", "last":True}))
+            self.write(self.make_chunk({"success":False, "next_msg":"An error occured. Please try again.", "last":True}))
             self.finish()
             raise

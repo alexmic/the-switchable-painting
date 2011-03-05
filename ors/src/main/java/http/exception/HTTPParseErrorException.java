@@ -1,6 +1,6 @@
 package http.exception;
 
-public class HttpParseErrorException extends Exception{
+public class HttpParseErrorException extends ChainedException{
 
 	private static final long serialVersionUID = 1L;
 

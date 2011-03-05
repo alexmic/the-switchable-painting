@@ -3,10 +3,10 @@
 #################
 
 echo "Stopping ORS, if running."
-pid=`ps -opid,comm,args -u"alex" | grep "Python Boot.py" | grep -v grep | awk '{print $1}'`
+pid=`ps -opid,comm,args -u"alex" | grep "/usr/bin/java -jar ors-" | grep -v grep | awk '{print $1}'`
 if [ "$pid" != "" ]
   then
     kill $pid
-    echo "Tornado server pid $pid, stopped."
+    echo "ORS pid $pid, stopped."
 fi
 

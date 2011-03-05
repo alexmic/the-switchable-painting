@@ -29,33 +29,29 @@ public class SimMatchHandler implements Handler {
 		 * MATCHING SIMULATION TEST.
 		 * 
 		 * This test will serve to explore the appropriability of the three methods of feature description,
-		 * namely (1) Intensity histogram (2) SIFT (3) SURF.
+		 * namely (1) Intensity histogram (2) SIFT.
 		 * 
 		 * We will always consider the same image (Son of Man) for now.
 		 */
 		
-		JSONObject response = new JSONObject();
-		JSONArray  imgs     = new JSONArray();
-		int D_THRESHOLD     = 100;
-		
-		Painting cameraPainting = ds.find(Painting.class, "title", "Son of Man").get();
-		if (cameraPainting == null) {
-			return "Painting does not exist.";
-		}
-		
-		// Descriptor strategies: Intensity Histogram -> 0, SIFT -> 1, SURF -> 2
+		// Descriptor strategies: Intensity Histogram -> 0, SIFT -> 1
 		int s = FeatureVectorType.INTENSITY_HISTOGRAM.ordinal();
 		if (requestParams.containsKey("s")) {
 			s = Integer.valueOf(requestParams.get("s"));
 		}
 		
-		List<Painting> storedPaintings = ds.find(Painting.class, "descriptorType", s).asList();
-		Map<Painting, Float> rankings = new HashMap<Painting, Float>();
+		JSONObject response = new JSONObject();
+		JSONArray  imgs     = new JSONArray();
+		float D_THRESHOLD     = 0.2f;
+		Painting cameraPainting = ds.createQuery(Painting.class)
+								  .field("title").equal("Son of Man (Pic 1)")
+								  .field("descriptorType").equal(s).get();
 		
-		// Init rankings to 0.
-		for (Painting p : storedPaintings) {
-			rankings.put(p, 0f);
+		if (cameraPainting == null) {
+			return "Painting does not exist.";
 		}
+		
+		List<Painting> storedPaintings = ds.find(Painting.class, "descriptorType", s).asList();
 		
 		// Calculate matching scores and create JSON response.
 		try {
@@ -74,7 +70,7 @@ public class SimMatchHandler implements Handler {
 			return response.toString();
 
 		} catch (JSONException e) {
-			throw new HttpHandlerErrorException(e);
+			throw new HttpHandlerErrorException(e.getMessage(), e);
 		}
 		
 	}

@@ -1,6 +1,6 @@
 package http.exception;
 
-public class HttpRouteErrorException extends Exception {
+public class HttpRouteErrorException extends ChainedException {
 
 	private static final long serialVersionUID = 1L;
 
