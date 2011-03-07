@@ -9,7 +9,9 @@ import org.tsp.stability.StabilityMonitor;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.hardware.Camera;
+import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PreviewCallback;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,17 +19,23 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
+import android.widget.TextView;
 
-public class MainScreen extends Activity implements SurfaceHolder.Callback,
-		StabilityListener {
-
+public class MainScreen extends Activity implements SurfaceHolder.Callback, StabilityListener 
+{
 	private SurfaceView surfaceView = null;
 	private SurfaceHolder surfaceHolder = null;
 	private Camera camera = null;
 	private StabilityMonitor stabilityMonitor = null;
-	private Button stableButton = null;
+	private TextView stabilityLabel = null;
 	private DrawingBob bob = null;
-
+	
+	/* We will only consider this phone since this is not
+	 * a commercial app, hence we hardcode the preview size.
+	 */
+	private final int PREVIEW_WIDTH = 480;
+	private final int PREVIEW_HEIGHT = 320;
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) 
 	{
@@ -38,9 +46,9 @@ public class MainScreen extends Activity implements SurfaceHolder.Callback,
 		surfaceHolder = surfaceView.getHolder();
 		surfaceHolder.addCallback(this);
 		surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-		stableButton = (Button) findViewById(R.id.testStableButton);
+		stabilityLabel = (TextView) findViewById(R.id.stabilityLabel);
 		stabilityMonitor = new StabilityMonitor(this, this.getBaseContext());
-		bob = new DrawingBob(this);
+		bob = new DrawingBob(this, PREVIEW_WIDTH, PREVIEW_HEIGHT);
 		addContentView(bob, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));	
 	}
 
@@ -48,10 +56,13 @@ public class MainScreen extends Activity implements SurfaceHolder.Callback,
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
 			int height) 
 	{
+		bob.setParentDimensions((float) surfaceView.getMeasuredHeight(), 
+							    (float) surfaceView.getMeasuredWidth());
 		camera.stopPreview();
 		Camera.Parameters parameters = camera.getParameters();
-		parameters.setPreviewSize(480, 320);
-		parameters.setPreviewFrameRate(15);
+		parameters.setPreviewSize(PREVIEW_WIDTH, PREVIEW_HEIGHT);
+		parameters.setPreviewFrameRate(24);
+		parameters.setWhiteBalance(Parameters.WHITE_BALANCE_AUTO);
 		camera.setParameters(parameters);
 		camera.setDisplayOrientation(90);
 		camera.startPreview();
@@ -64,24 +75,11 @@ public class MainScreen extends Activity implements SurfaceHolder.Callback,
 			camera = Camera.open();
 			camera.setPreviewCallback(new PreviewCallback() {
 				public void onPreviewFrame(byte[] _data, Camera _camera) {
-					// From Stanford's tutorial at:
-					// http://www.doocu.com/pdf/read/31669.
-					// Code can be found at:
-					// http://ee368.stanford.edu/Android/ViewfinderEE368/ViewfinderEE368.java
-					if (bob.getBitmap() == null) {
-						// Init drawing surfaceView.
-						Camera.Parameters params = camera.getParameters();
-						int h = params.getPreviewSize().height;
-						int w = params.getPreviewSize().width;
-						bob.setImageWidth(w);
-						bob.setImageHeight(h);
-						bob.setBitmap(Bitmap.createBitmap(w, h,
-								Bitmap.Config.RGB_565));
-						bob.setRGBData(new double[h][w]);
-						bob.setYUVData(new byte[_data.length]);
+					if (bob != null) {
+						bob.extractGrayscaleData(_data);
+						bob.invalidate();
+						
 					}
-					bob.copyYUVData(_data);
-					bob.invalidate();
 				}
 			});
 			camera.setPreviewDisplay(holder);
@@ -118,13 +116,15 @@ public class MainScreen extends Activity implements SurfaceHolder.Callback,
 	@Override
 	public void onBecomingStable() 
 	{
-		stableButton.setText("Stable");
+		stabilityLabel.setText("Stable");
+		stabilityLabel.setBackgroundColor(Color.GREEN);
 	}
 
 	@Override
 	public void onBecomingUnstable() 
 	{
-		stableButton.setText("Unstable");
+		stabilityLabel.setText("Unstable");
+		stabilityLabel.setBackgroundColor(Color.RED);
 	}
 
 }

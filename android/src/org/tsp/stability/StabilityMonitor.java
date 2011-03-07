@@ -13,7 +13,7 @@ public class StabilityMonitor implements SensorEventListener {
 	private Sensor lightSensor = null;
 	private StabilityListener listener = null;
 	
-	private float stabilityThreshold = 0.0135f; // Through experimentation.
+	private float stabilityThreshold = 0.011f; // Through experimentation.
 	private float xSensorValue = 0f;
 	private float ySensorValue = 0f;
 	private float zSensorValue = 0f;

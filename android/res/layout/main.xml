@@ -22,10 +22,12 @@
     			android:orientation="horizontal"
     			android:layout_alignParentBottom="true" 
     			style="@android:style/ButtonBar">
-    				<Button android:id="@+id/testStableButton" 
+    				<TextView android:id="@+id/stabilityLabel" 
     					android:layout_width="wrap_content"
-        				android:layout_height="wrap_content" 
+        				android:layout_height="30dip" 
         				android:layout_weight="1"
+        				android:gravity="center_vertical|center_horizontal"
+        				android:textColor="#000"
         				android:text="Unstable" />
     				<Button android:id="@+id/saveButton" 
     					android:layout_width="wrap_content"

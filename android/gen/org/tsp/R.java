@@ -20,7 +20,7 @@ public final class R {
         public static final int camera_surface=0x7f060000;
         public static final int footer=0x7f060001;
         public static final int saveButton=0x7f060003;
-        public static final int testStableButton=0x7f060002;
+        public static final int stabilityLabel=0x7f060002;
     }
     public static final class layout {
         public static final int main=0x7f030000;

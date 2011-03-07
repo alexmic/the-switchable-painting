@@ -9,6 +9,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.Log;
@@ -21,18 +22,21 @@ public class DrawingBob extends View{
 	private Paint paintRed = null;
 	private Paint paintBlue = null;
 	
-	private Bitmap bitmap = null;
-	
-	private byte[] YUVData = null;
-	private double[][] RGBData = null;
+	private double[][] grayscale2D = null;
 	
 	private int imageWidth = 0;
 	private int imageHeight = 0;
 	
-	private final int FAST_THRESHOLD = 19;
-	private final int MAX_NUM_OF_FEATURES = 150;
+	private float parentWidth = 0f;
+	private float parentHeight = 0f;
 	
-	public DrawingBob(Context context) 
+	private float aspectX = 0f;
+	private float aspectY = 0f;
+	
+	private final int FAST_THRESHOLD = 18;
+	private final int MAX_NUM_OF_FEATURES = 250;
+	
+	public DrawingBob(Context context, int w, int h) 
 	{
 		super(context);
 		
@@ -48,18 +52,22 @@ public class DrawingBob extends View{
 		paintBlue.setStyle(Paint.Style.FILL);
 		paintBlue.setColor(Color.BLUE);
 		
+		// Bob will hold the rotated image.
+		this.imageHeight = w;
+		this.imageWidth = h;
+		
+		this.grayscale2D = new double[this.imageHeight][this.imageWidth];
 	}
 	
-	public Bitmap getBitmap() 
+	public void setParentDimensions(float parentWidth, float parentHeight)
 	{
-		return bitmap;
+		this.parentWidth = parentWidth;
+		this.parentHeight = parentHeight;
+		this.aspectY = this.parentWidth / this.imageHeight;
+		this.aspectX = this.parentHeight / this.imageWidth;
+		Log.d("asag", aspectX + " " + aspectY);
 	}
-
-	public void setBitmap(Bitmap bitmap) 
-	{
-		this.bitmap = bitmap;
-	}
-
+	
 	public int getImageWidth() 
 	{
 		return imageWidth;
@@ -68,7 +76,6 @@ public class DrawingBob extends View{
 	public void setImageWidth(int imageWidth) 
 	{
 		this.imageWidth = imageWidth;
-		Log.d("asg", "========== HEIGHT"+ imageHeight);
 	}
 
 	public int getImageHeight() 
@@ -79,62 +86,39 @@ public class DrawingBob extends View{
 	public void setImageHeight(int imageHeight) 
 	{
 		this.imageHeight = imageHeight;
-		Log.d("asg", "========== HEIGHT"+ imageHeight);
 	}
 	
-	public byte[] getYUVData() 
+	public void extractGrayscaleData(byte[] yuv420sp) 
 	{
-		return YUVData;
-	}
-
-	public void setYUVData(byte[] yUVData) 
-	{
-		this.YUVData = yUVData;
-	}
-	
-	public void copyYUVData(byte[] yUVData) 
-	{
-		System.arraycopy(yUVData, 0, YUVData, 0, yUVData.length);
-	}
-
-	public double[][] getRGBData() 
-	{
-		return RGBData;
-	}
-
-	public void setRGBData(double[][] rGBData)
-	{
-		RGBData = rGBData;
+		int w = this.imageHeight;
+		int h = this.imageWidth;
+		for (int i = 0; i < h; ++i) {
+    		for (int j = 0; j < w; ++j) {
+    			int index = i * w + j;
+    			int pixVal = (0xff & ((int) yuv420sp[index])) - 16;
+        		if (pixVal < 0) pixVal = 0;
+        		if (pixVal > 255) pixVal = 255;
+        		grayscale2D[j][h-1-i] = pixVal;
+    		}
+    	}
 	}
 	
 	@Override
     protected void onDraw(Canvas canvas) 
 	{
-        if (this.bitmap != null) {
-        	decodeYUV420SPGrayscale(RGBData, YUVData, imageWidth, imageHeight);
-        	List<FeaturePoint> featurePoints = Fast12.detect(RGBData, imageWidth, imageHeight, FAST_THRESHOLD, MAX_NUM_OF_FEATURES);
+	
+        if (this.grayscale2D != null) {
+        	List<FeaturePoint> featurePoints = Fast12.detect(grayscale2D, imageWidth, imageHeight, FAST_THRESHOLD, MAX_NUM_OF_FEATURES);
         	Rect rect = new Rect();
         	for (FeaturePoint fp : featurePoints) {
-        		rect.top = fp.y();
-        		rect.bottom = rect.top + 3;
-        		rect.left = fp.x();
-        		rect.right = fp.x() + 3;
+        		rect.top = (int) (fp.y() * aspectY);
+        		rect.bottom = rect.top + 5;
+        		rect.left = (int) (fp.x() * aspectX);
+        		rect.right = rect.left + 5;
         		canvas.drawRect(rect, paintRed);
         	}
         }
         super.onDraw(canvas);
 	}
-
-	private void decodeYUV420SPGrayscale(double[][] rgb, byte[] yuv420sp, int w, int h)
-    {
-    	for (int y = 0; y < h; ++y) {
-    		for (int x = 0; x < w; ++x) {
-    			int pixVal = (0xff & ((int) yuv420sp[y * w + x])) - 16;
-        		if (pixVal < 0) pixVal = 0;
-        		if (pixVal > 255) pixVal = 255;
-        		rgb[y][x] = pixVal;
-    		}
-    	}
-    }
 
 }	
