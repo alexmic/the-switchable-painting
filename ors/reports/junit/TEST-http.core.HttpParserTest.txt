@@ -1,13 +1,13 @@
 Testsuite: http.core.HttpParserTest
-Tests run: 10, Failures: 0, Errors: 0, Time elapsed: 0.039 sec
+Tests run: 10, Failures: 0, Errors: 0, Time elapsed: 0.046 sec
 
-Testcase: testOKGETRequest took 0.003 sec
-Testcase: testOKPUTRequest took 0.003 sec
-Testcase: testOKPOSTRequest took 0.003 sec
-Testcase: testOKDELETERequest took 0 sec
+Testcase: testOKGETRequest took 0.011 sec
+Testcase: testOKPUTRequest took 0.001 sec
+Testcase: testOKPOSTRequest took 0.001 sec
+Testcase: testOKDELETERequest took 0.001 sec
 Testcase: testOKGETParameterParse took 0.001 sec
 Testcase: testOKPOSTParameterParse took 0 sec
-Testcase: testBadHTTPMethod took 0.001 sec
-Testcase: testBadHTTPRequestLine took 0.001 sec
-Testcase: testNullInputStream took 0 sec
-Testcase: testBadHTTPParameters took 0 sec
+Testcase: testBadHTTPMethod took 0 sec
+Testcase: testBadHTTPRequestLine took 0 sec
+Testcase: testNullInputStream took 0.001 sec
+Testcase: testBadHTTPParameters took 0.001 sec

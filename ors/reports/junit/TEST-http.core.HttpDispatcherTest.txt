@@ -1,10 +1,10 @@
 Testsuite: http.core.HttpDispatcherTest
-Tests run: 7, Failures: 0, Errors: 0, Time elapsed: 0.023 sec
+Tests run: 7, Failures: 0, Errors: 0, Time elapsed: 0.035 sec
 
-Testcase: testExistingGETHandlerDispatch took 0.004 sec
-Testcase: testExistingPOSTHandlerDispatch took 0 sec
+Testcase: testExistingGETHandlerDispatch took 0.003 sec
+Testcase: testExistingPOSTHandlerDispatch took 0.001 sec
 Testcase: testNotExistingGETHandlerDispatch took 0 sec
 Testcase: testNotExistingPOSTHandlerDispatch took 0.001 sec
 Testcase: testNullRequest took 0 sec
 Testcase: testExistingMethodDispatch took 0 sec
-Testcase: testNotExistingMethodDispatch took 0.001 sec
+Testcase: testNotExistingMethodDispatch took 0 sec

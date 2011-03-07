@@ -1,0 +1,12 @@
+Testsuite: cv.SiftPatchTest
+Tests run: 3, Failures: 0, Errors: 0, Time elapsed: 0.021 sec
+------------- Standard Output ---------------
+0.65055037
+0.0
+0.0
+0.75946313
+------------- ---------------- ---------------
+
+Testcase: testFitsKernel took 0.005 sec
+Testcase: testExtractPatch took 0 sec
+Testcase: testOrientations took 0.002 sec

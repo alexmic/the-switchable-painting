@@ -46,7 +46,7 @@ public class FeatureVectorTest extends TestCase{
 	{
 		IHFeatureVector fv1 = new IHFeatureVector(1, 1, new float[]{0f, 0f, 0f});
 		IHFeatureVector fv2 = new IHFeatureVector(1, 21, new float[]{4f, 0f, 3f});
-		assertTrue(fv1.getVectorDistance(fv2) == 25);
+		assertTrue(fv1.getVectorDistance(fv2) == 5);
 	}
 	
 	@Test

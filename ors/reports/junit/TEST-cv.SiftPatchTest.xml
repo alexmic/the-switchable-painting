@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuite errors="0" failures="0" hostname="Ninja.local" name="cv.FeatureVectorTest" tests="7" time="0.112" timestamp="2011-03-05T16:42:56">
+<testsuite errors="0" failures="0" hostname="Ninja.local" name="cv.SiftPatchTest" tests="3" time="0.021" timestamp="2011-03-05T16:42:56">
   <properties>
     <property name="java.runtime.name" value="Java(TM) SE Runtime Environment" />
     <property name="sun.boot.library.path" value="/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Libraries" />
@@ -67,13 +67,13 @@
     <property name="ftp.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16" />
     <property name="sun.cpu.isalist" value="" />
   </properties>
-  <testcase classname="cv.FeatureVectorTest" name="testIsEquivalent" time="0.0040" />
-  <testcase classname="cv.FeatureVectorTest" name="testIsNotEquivalentDescriptor" time="0.0" />
-  <testcase classname="cv.FeatureVectorTest" name="testIsNotEquivalentCoords" time="0.0" />
-  <testcase classname="cv.FeatureVectorTest" name="testIsCompatible" time="0.0020" />
-  <testcase classname="cv.FeatureVectorTest" name="testDistanceFunctionWhenCompatibleAndPopulated" time="0.0010" />
-  <testcase classname="cv.FeatureVectorTest" name="testDistanceFunctionWhenNotCompatible" time="0.0010" />
-  <testcase classname="cv.FeatureVectorTest" name="testDistanceFunctionWhenNotCorrectlyPopulated" time="0.0010" />
-  <system-out><![CDATA[]]></system-out>
+  <testcase classname="cv.SiftPatchTest" name="testFitsKernel" time="0.0050" />
+  <testcase classname="cv.SiftPatchTest" name="testExtractPatch" time="0.0" />
+  <testcase classname="cv.SiftPatchTest" name="testOrientations" time="0.0020" />
+  <system-out><![CDATA[0.65055037
+0.0
+0.0
+0.75946313
+]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>
