@@ -23,8 +23,8 @@ class ORSService:
     def sim_match(self, strategy, cback):
         self.__do(self.__get_request(uri="match", method="GET", params={"s": strategy}), cback)
     
-    def get_match(self, id, feature_vectors, cback):
-        self.__do(self.__get_request(uri="match", method="POST", params={"id" : id, "fvectors" : feature_vectors}), cback)
+    def get_match(self, payload, cback):
+        self.__do(self.__get_request(uri="match", method="POST", params={"payload" : payload}), cback)
 
     def __do(self, http_request, cback):
         http = tornado.httpclient.AsyncHTTPClient()

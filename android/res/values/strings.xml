@@ -2,5 +2,12 @@
 <resources>
     <string name="hello">Hello World, MainScreen!</string>
     <string name="app_name">The Switchable Painting</string>
-<string name="btn_pref">Preferences</string>
+	<string name="prefs_btn_label">Preferences</string>
+	<string name="server_ip_title">Server IP</string>
+	<string name="server_ip_summary">Set the server IP address.</string>
+	<string name="toggle_showoff_behaviour_title">Showoff Behaviour</string>
+	<string name="toggle_showoff_behaviour_summary">Show detected FAST corners and painting outline (recognition is disabled).</string>
+	<string name="prefs_activity_label">Preferences</string>
+	<string name="select_descriptor_title">Select Descriptor</string>
+	<string name="select_descriptor_summary">Select feature description strategy.</string>
 </resources>

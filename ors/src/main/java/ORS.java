@@ -102,7 +102,7 @@ public class ORS
 		// Wire up the routes.
 		HttpDispatcher dispatcher = new HttpDispatcher();
 		dispatcher.addRoute("/painting", new TestFDHandler(ds))
-		  		  .addRoute("/match", new SimMatchHandler(ds))
+		  		  .addRoute("/match", new MatchHandler(ds))
 		  		  .addRoute("/collection", new CollectionHandler(ds))
 		          .ignore("/favicon.ico");
 		

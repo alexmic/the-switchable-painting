@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+	xmlns:android="http://schemas.android.com/apk/res/android">
+	<EditTextPreference
+	    android:key="server_ip"
+	    android:title="@string/server_ip_title"
+	    android:summary="@string/server_ip_summary"
+	    android:defaultValue="10.0.0.2:7070" />
+	<CheckBoxPreference
+		android:key="toggle_showoff_behaviour"
+		android:title="@string/toggle_showoff_behaviour_title"
+		android:summary="@string/toggle_showoff_behaviour_summary"
+		android:defaultValue="true"/>
+	<ListPreference
+	    android:key="select_descriptor"
+        android:title="@string/select_descriptor_title"
+        android:summary="@string/select_descriptor_summary"
+        android:entries="@array/select_descriptor_entries"
+        android:entryValues="@array/select_descriptor_entry_values" 
+        android:defaultValue="SIFT"/>
+</PreferenceScreen>

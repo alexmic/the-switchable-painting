@@ -38,7 +38,7 @@ public class FastBenchmark {
 	public void run(boolean createImages) throws IOException
 	{
 		setUp();
-		_run(createImages);
+		//_run(createImages);
 	}
 	
 	/**
@@ -56,7 +56,7 @@ public class FastBenchmark {
 		
 		// Load image and turn it to gray.
 		img = ImageIO.read(new File(IMG_PATH + IMG_NAME));
-		img = Filter.desaturate(img);
+		//img = Filter.desaturate(img);
 		w = img.getWidth();
 		h = img.getHeight();
 		pixels = new int[h][w];
@@ -74,7 +74,7 @@ public class FastBenchmark {
 	 * The main benchmark method.
 	 * @throws IOException 
 	 */
-	private void _run(boolean createImages) throws IOException 
+	/*private void _run(boolean createImages) throws IOException 
 	{
 		// The benchmark's output:
 		// + B: threshold
@@ -89,7 +89,7 @@ public class FastBenchmark {
 			// without a cap on the number of returned corners so we can
 			// compare the results.
 			long start = System.currentTimeMillis();
-			List<FeaturePoint> f1 = Fast12.detectWithNonMax(pixels, w, h, t, -1);
+			//List<FeaturePoint> f1 = Fast12.detectWithNonMax(pixels, w, h, t, -1);
 			long stop = System.currentTimeMillis();
 			if (createImages)
 				drawImage(f1, t, "with_nonmax");
@@ -97,14 +97,14 @@ public class FastBenchmark {
 			
 			// Run without non-maximum suppression.
 			start = System.currentTimeMillis();
-			List<FeaturePoint> f2 = Fast12.detect(pixels, w, h, t, -1);
+			//List<FeaturePoint> f2 = Fast12.detect(pixels, w, h, t, -1);
 			stop = System.currentTimeMillis();
 			if (createImages)
 				drawImage(f2, t,"without_nonmax");
 			System.out.println("Without non-max: B=" + t + ": N=" + f2.size() + ": T=" + (stop - start));
 			System.out.println("-----------------------");
 		}
-	}
+	}*/
 	
 	/**
 	 * Creates a grayscale image with the corners painted in red, for visualising
@@ -115,7 +115,7 @@ public class FastBenchmark {
 	 * 				to distinguish between "with non max" and "without non max".
 	 * @throws IOException
 	 */
-	private void drawImage(List<FeaturePoint> featurePoints, int t, String extra) throws IOException
+	/*private void drawImage(List<FeaturePoint> featurePoints, int t, String extra) throws IOException
 	{
 		//Draw up some rectangles to have something to demonstrate.
 		Graphics2D g2 = img.createGraphics();
@@ -128,6 +128,6 @@ public class FastBenchmark {
 		String[] tokens = IMG_NAME.split("\\.");
 		File out = new File(IMG_PATH + tokens[0] + "_" + extra + "_t" + t + "." + tokens[tokens.length-1]);
 		ImageIO.write(img, "jpg", out);
-	}
+	}*/
 }
 

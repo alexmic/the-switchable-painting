@@ -1,73 +1,125 @@
 package org.tsp.stability;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.util.Log;
 
-public class StabilityMonitor implements SensorEventListener {
-
+public class StabilityMonitor implements SensorEventListener 
+{
+	private final float HIGH_PASS_FILTER_THRESHOLD = 0.1f;
+	private final int DELAY_COUNTER_MAX_VALUE = 1;
+	private final long CONTINUOUS_STABILITY_THRESHOLD = 500; // in milliseconds.
+	
 	private SensorManager sensorManager = null;
 	private Sensor accelerationSensor = null;
 	private Sensor lightSensor = null;
-	private StabilityListener listener = null;
 	
+	private List<StabilityListener> listeners = null;
+	
+	// Readings and thresholds.
 	private float stabilityThreshold = 0.011f; // Through experimentation.
 	private float xSensorValue = 0f;
 	private float ySensorValue = 0f;
 	private float zSensorValue = 0f;
 	private float avgDisplacement = 0f;
 	
+	// Counter to slow down the UI updates - mainly for performance reasons.
+	// After experimentation, the UI updates do not slow down the application
+	// so we set DELAY_COUNTER_MAX_VALUE to 1 in order to update on every
+	// reading.
 	private int delayCounter = 0;
 	
+	// Variables to check for continuous stability.
+	private long wasLastStableTimestamp = 0;
+	private boolean wasLastStable = false;
+	
+	// The accelerometer values contain the acceleration from gravity (g),
+	// so we need to filter that out.
 	private float[] gravity = {0f, 0f, 0f};
 	
-	private final float HIGH_PASS_FILTER_THRESHOLD = 0.1f;
-	private final int DELAY_VALUE = 2;
-	
-	public StabilityMonitor(StabilityListener listener, Context context)
+	public StabilityMonitor(Context context)
 	{
-		this.listener = listener;
+		this.listeners = new ArrayList<StabilityListener>();
 		this.sensorManager = (SensorManager) context.getSystemService("sensor");
 		this.accelerationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		this.lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
 	}
 	
-	public void init()
+	/**
+	 * Registers (or re-registers) the necessary listeners.
+	 * @return 
+	 * 		  This.
+	 */
+	public StabilityMonitor resume()
 	{
 		sensorManager.registerListener(this, accelerationSensor, SensorManager.SENSOR_DELAY_NORMAL);
 		sensorManager.registerListener(this, lightSensor, SensorManager.SENSOR_DELAY_FASTEST);
+		return this;
 	}
 	
-	public void shutDown()
+	/**
+	 * Unregisters 
+	 * @return
+	 */
+	public StabilityMonitor pause()
 	{
 		sensorManager.unregisterListener(this);
+		return this;
 	}
 	
-	public void setStabilityThreshold(float threshold)
+	/**
+	 * 
+	 * @param threshold
+	 * @return
+	 */
+	public StabilityMonitor setStabilityThreshold(float threshold)
 	{
 		this.stabilityThreshold = threshold;
+		return this;
 	}
 	
+	/**
+	 * 
+	 * @return
+	 */
 	public float getStabilityThreshold()
 	{
 		return this.stabilityThreshold;
 	}
 	
+	/**
+	 * 
+	 * @return
+	 */
 	public float[] getAccelerationSensorValue()
 	{
-		return new float[]{this.xSensorValue, this.ySensorValue, this.zSensorValue};
+		return new float[]{ this.xSensorValue, this.ySensorValue, this.zSensorValue };
 	}
 	
+	/**
+	 * 
+	 * @return
+	 */
 	public float getAverageDisplacement()
 	{
 		return this.avgDisplacement;
 	}
 	
+	/**
+	 * 
+	 */
 	@Override
 	public void onAccuracyChanged(Sensor sensor, int accuracy) {}
 
+	/**
+	 * 
+	 */
 	@Override
 	public void onSensorChanged(SensorEvent event) 
 	{
@@ -78,24 +130,61 @@ public class StabilityMonitor implements SensorEventListener {
 				float x = filteredValues[0];
 				float y = filteredValues[1];
 				float z = filteredValues[2];
-				this.avgDisplacement = Math.abs(x + y + z) / 3;
-				this.xSensorValue = x;
-				this.ySensorValue = y;
-				this.zSensorValue = z;
-			}	
-			if (delayCounter >= DELAY_VALUE) {
-				if (isStable()) {
-					listener.onBecomingStable();
+				avgDisplacement = Math.abs(x + y + z) / 3;
+				xSensorValue = x;
+				ySensorValue = y;
+				zSensorValue = z;
+				
+				if (delayCounter >= DELAY_COUNTER_MAX_VALUE) {
+					for (StabilityListener sl : listeners) {
+						if (isStable()) {
+							sl.onBecomingStable();
+							if (wasLastStable) {
+								if (System.currentTimeMillis() - wasLastStableTimestamp >= CONTINUOUS_STABILITY_THRESHOLD) {
+									sl.onBecomingContinuouslyStable();
+								}
+							} else {
+								wasLastStableTimestamp = System.currentTimeMillis();
+							}
+							wasLastStable = true;
+						} else {
+							sl.onBecomingUnstable();
+							wasLastStable = false;
+						}
+					}
+					delayCounter = 0;
 				} else {
-					listener.onBecomingUnstable();
+					delayCounter++;
 				}
-				delayCounter = 0;
-			} else {
-				delayCounter++;
 			}
 		}
 	}
 	
+	/**
+	 * 
+	 * @param listener
+	 * @return
+	 */
+	public StabilityMonitor addListener(StabilityListener listener)
+	{
+		listeners.add(listener);
+		return this;
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public List<StabilityListener> getListeners()
+	{
+		return listeners;
+	}
+	
+	/**
+	 * 
+	 * @param values
+	 * @return
+	 */
 	private float[] highPassFilter(float[] values)
 	{
 		float[] newValues = new float[3];
@@ -111,6 +200,10 @@ public class StabilityMonitor implements SensorEventListener {
 		return newValues;
 	}
 	
+	/**
+	 * 
+	 * @return
+	 */
 	private boolean isStable()
 	{
 		return this.avgDisplacement <= this.stabilityThreshold;

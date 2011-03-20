@@ -1,4 +1,4 @@
-package org.tsp.draw.cv.detector.fast;
+package org.tsp.cv.detector.fast;
 
 import java.util.ArrayList;
 import java.util.Collections;

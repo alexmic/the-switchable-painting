@@ -29,11 +29,11 @@
         				android:gravity="center_vertical|center_horizontal"
         				android:textColor="#000"
         				android:text="Unstable" />
-    				<Button android:id="@+id/saveButton" 
+    				<Button android:id="@+id/prefsButton" 
     					android:layout_width="wrap_content"
         				android:layout_height="wrap_content" 
         				android:layout_weight="1"
-        				android:text="@string/btn_pref" />
+        				android:text="@string/prefs_btn_label" />
 			</LinearLayout>
 	</RelativeLayout>
 </LinearLayout>

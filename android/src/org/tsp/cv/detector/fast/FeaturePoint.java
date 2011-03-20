@@ -1,4 +1,4 @@
-package org.tsp.draw.cv.detector.fast;
+package org.tsp.cv.detector.fast;
 
 /**
  * Represents a feature point in the image. 
@@ -43,6 +43,16 @@ public class FeaturePoint implements Comparable<FeaturePoint>{
 	public int y()
 	{
 		return y;
+	}
+	
+	public void x(int x)
+	{
+		this.x = x;
+	}
+	
+	public void y(int y)
+	{
+		this.y = y;
 	}
 	
 	public int score()
