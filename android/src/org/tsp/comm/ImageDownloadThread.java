@@ -19,22 +19,21 @@ public class ImageDownloadThread extends Thread
 {
 	private String serverHandler = "/storage";
 
-	private Context parentContext = null;
+	private String serverIP = null;
 	private ImageDownloadThreadResult result = null;
 	private List<String> imageUIDs = null;
 	
-	public ImageDownloadThread(Context context, List<String> imageUIDs, ImageDownloadThreadResult result) 
+	public ImageDownloadThread(String serverIP, List<String> imageUIDs, ImageDownloadThreadResult result) 
 	{
 		super();
 		this.result = result;
-		this.parentContext = context;
+		this.serverIP = serverIP;
 		this.imageUIDs = imageUIDs;
 	}
 	
 	@Override
 	public void run()
 	{
-		String serverIP = Prefs.getPref_serverIP(parentContext);
 		List<Bitmap> downloadedImages = new ArrayList<Bitmap>();
 		boolean atLeastOneSucceeded = false;
 		for (String UID : imageUIDs) {

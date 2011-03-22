@@ -1,0 +1,9 @@
+Console Log: Logs initialized succesfully.
+Console Log: Logs initialized succesfully.
+Feb 6, 2011 4:36:46 PM com.google.code.morphia.logging.MorphiaLoggerFactory chooseLoggerFactory
+INFO: LoggerImplFactory set to com.google.code.morphia.logging.jdk.JDKLoggerFactory
+Console Log: IOException occured when iniConsole Log: Server terminating. Closing log streams.
+.socketBind(Native Method)java.net.PlainSocketImpl.bind(PlainSocketImpl.java:365)java.net.ServerSocket.bind(ServerSocket.java:319)java.net.ServerSocket.<init>(ServerSocket.java:185)java.net.ServerSocket.<init>(ServerSocket.java:97)http.core.HttpServer.start(HttpServer.java:41)ORS.main(ORS.java:111)-- 
+Console Log: 
+Server is not able to start because server loop initialisation failed. Server exiting.
+Console Log: Server terminating. Closing log streams.

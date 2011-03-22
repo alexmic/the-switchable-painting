@@ -13,11 +13,8 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.tsp.activity.Prefs;
 import org.tsp.cv.descriptor.FeatureVector;
 import org.tsp.model.Painting;
-
-import android.content.Context;
 
 public class ORSMatchThread extends Thread
 {
@@ -25,17 +22,17 @@ public class ORSMatchThread extends Thread
 	
 	private List<FeatureVector> featureVectors = null;
 	private int strategy = 0;
-	private Context parentContext = null;
+	private String serverIP = null;
 	private ORSMatchThreadResult result = null;
 	
-	public ORSMatchThread(Context context, List<FeatureVector> featureVectors,
+	public ORSMatchThread(String serverIP, List<FeatureVector> featureVectors,
 						   int strategy, ORSMatchThreadResult result) 
 	{
 		super();
 		this.strategy = strategy;
 		this.featureVectors = featureVectors;
 		this.result = result;
-		this.parentContext = context;
+		this.serverIP = serverIP;
 	}
 	
 	@Override
@@ -66,12 +63,7 @@ public class ORSMatchThread extends Thread
 			ex.printStackTrace();
 			return;
 		}
-		String serverIP = Prefs.getPref_serverIP(parentContext);
-		if (serverIP == null || serverIP.equals("") || serverIP.split(":").length < 2) {
-			onError();
-			System.err.println("Wrong ip address.");
-			return;
-		}
+		
 		try {
 			JSONObject response = new JSONObject(sendPOST(serverIP + serverHandler, payload));
 			if (!response.isNull("matched")) {
@@ -108,6 +100,7 @@ public class ORSMatchThread extends Thread
 		conn.setDoOutput(true);
 		OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream());
 		out.write("payload=" + payload.toString());
+		out.flush();
 		BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 		StringBuffer response = new StringBuffer();
 		String temp;
@@ -120,7 +113,7 @@ public class ORSMatchThread extends Thread
 	private void onError()
 	{
 		result.setSuccess(false);
-		result.setFinished(false);
+		result.setFinished(true);
 	}
 	
 }

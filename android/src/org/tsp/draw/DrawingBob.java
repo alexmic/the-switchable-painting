@@ -13,6 +13,7 @@ import static com.googlecode.javacv.cpp.opencv_imgproc.cvContourArea;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvContourPerimeter;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvDilate;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvFindContours;
+import static com.googlecode.javacv.cpp.opencv_calib3d.cvFindHomography;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -34,13 +35,17 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.widget.Toast;
 
 import com.googlecode.javacpp.Loader;
 import com.googlecode.javacv.cpp.opencv_core.CvContour;
+import com.googlecode.javacv.cpp.opencv_core.CvMat;
 import com.googlecode.javacv.cpp.opencv_core.CvMemStorage;
 import com.googlecode.javacv.cpp.opencv_core.CvPoint;
 import com.googlecode.javacv.cpp.opencv_core.CvSeq;
@@ -71,6 +76,7 @@ public class DrawingBob extends View implements StabilityListener
 	private int currentImgIndex = 0;
 	
 	private boolean isPaused = false;
+	
 	private double[][] grayScale2D = null;
 
 	private int imageWidth = 0;
@@ -97,7 +103,12 @@ public class DrawingBob extends View implements StabilityListener
 	private ORSMatchThreadResult ORSMatchResult = new ORSMatchThreadResult();
 	private ImageDownloadThreadResult imageDownloadResult = new ImageDownloadThreadResult();
 	
-	private List<Bitmap> imagesToDraw = null;
+	private List<Bitmap> relevantPaintingsImgs = null;
+	private List<Painting> relevantPaintings = null;
+	
+	private CvMat currImgSrcMatrix = null;
+	
+	private CvPoint refCorners = null;
 	
 	public DrawingBob(Context context, int w, int h) 
 	{
@@ -133,6 +144,13 @@ public class DrawingBob extends View implements StabilityListener
 		storage = CvMemStorage.create();
 		
 		grayScale2D = new double[imageHeight][imageWidth];
+		
+		currImgSrcMatrix = CvMat.create(4, 2);
+		
+		System.load("/data/data/org.tsp/lib/libopencv_imgproc.so");
+		System.load("/data/data/org.tsp/lib/libopencv_highgui.so");
+		System.load("/data/data/org.tsp/lib/libopencv_calib3d.so");
+		
 	}
 	
 	/**
@@ -165,16 +183,17 @@ public class DrawingBob extends View implements StabilityListener
 		return imageHeight;
 	}
 
-	public DrawingBob pause()
+	public synchronized DrawingBob pause()
 	{
 		isPaused = true;
 		currentState = IDLE;
-		imagesToDraw = null;
+		relevantPaintings = null;
+		relevantPaintingsImgs = null;
 		currentImgIndex = 0;
 		return this;
 	}
 	
-	public DrawingBob resume()
+	public synchronized DrawingBob resume()
 	{
 		isPaused = false;
 		// If the activity was paused while a thread was running
@@ -233,79 +252,115 @@ public class DrawingBob extends View implements StabilityListener
 	@Override
     protected void onDraw(Canvas canvas) 
 	{
+		// The drawing procedure follows a Finite State Machine.
+		
         if (!isPaused()) {
+        	
         	// Read behaviour from preferences.
-        	// Might need some synchronization here..
         	currentBehaviour = Prefs.getPref_isShowoffBehaviourEnabled(parentContext)? SHOWOFF_BEHAVIOUR : NORMAL_BEHAVIOUR;
+        	
         	switch (currentBehaviour) {
+        		
+				////////////////////////////////////////
+				// NORMAL BEHAVIOUR					  //
+				// -----------------				  //
+		 		// Normal mode - recognition and all. //
+				////////////////////////////////////////
 				case NORMAL_BEHAVIOUR:
+			
 					Log.d("DrawingBob", "--- NORMAL BEHAVIOUR State: " + currentState + " ---");
+					
 					switch (currentState) {
+						
+						////////////////////////////////////////////////
+						// READY_FOR_SNAPSHOT						  //
+						// -------------------						  //
+					 	// Once the continuously stable method		  //
+						// is called, we enter this state to try	  //
+						// and find a painting in the camera preview. //
+						////////////////////////////////////////////////
 						case READY_FOR_SNAPSHOT:
-							CvPoint paintingCorners = new CvPoint(4);
-							double area = extractCorners(paintingCorners);
+							
+							// Extract corners.
+							refCorners = new CvPoint(4);
+							double area = extractCorners(refCorners);
+							
 							if (area > MIN_AREA_THRESHOLD) {
-								// Experiment with extracted corners area. If area is less than
-								// a threshold we won't try to do any recognition at all.
-								//Log.d("D", " ---- got corners ---- " + area);
-								double[][] subregion = extractBoundingRect(paintingCorners, canvas);
+								// Extract bounding rectangle.
+								double[][] subregion = extractBoundingRect(refCorners, canvas);
+								
 								if (subregion.length > 0 && subregion[0].length > 0) {
-									// This should take a couple of hundreds milliseconds. Remember
-									// to time this.
+									// Extract feature points.
 									List<FeaturePoint> featurePoints 
 										= Fast12.detect(subregion, subregion[0].length, subregion.length, 
 														FAST_THRESHOLD, MAX_NUM_OF_FEATURES);
-									//Log.d("D", " ---- performed FAST ---- " + area);
+									
+									// Run descriptor.
 									int strategy = Integer.valueOf(Prefs.getPref_selectDescriptor(parentContext));
 									descriptorContext = new DescriptorContext(strategy);
 									List<FeatureVector> featureVectors = descriptorContext.getFeatureVectors(featurePoints, subregion);
-									//Log.d("D", " ---- performed DESCRIPTION ---- " + area);
-									new ORSMatchThread(parentContext, featureVectors, strategy, ORSMatchResult).start();
+									
+									// Upload feature vectors to ORS.
+									String serverIP = getServerIP();
+									if (serverIP == null)
+										return;
+									new ORSMatchThread(serverIP, featureVectors, strategy, ORSMatchResult).start();
+									
+									// Change state.
 									synchronized (this) {
-										//Log.d("D", " ---- Waiting for results... ---- ");
 										currentState = WAIT_FOR_MATCH_RESULTS;
 									}
 								}
 				        	}
 							break;
+						
+						////////////////////////////////////////////////
+						// WAIT_FOR_MATCH_RESULTS					  //
+						// -----------------------					  //
+					 	// Wait for the feature vectors to be matched //
+						// by the ORS and a matching to be returned.  //
+						////////////////////////////////////////////////
 						case WAIT_FOR_MATCH_RESULTS: 
+						
 							if (ORSMatchResult.isFinished()) {
-								//Log.d("D", " ---- Match finished ---- ");
 								if (ORSMatchResult.isSuccessful()) {
-									//Log.d("D", " ---- Match was successful ---- ");
 									Painting matchedPainting = ORSMatchResult.getMatchedPainting();
 									if (matchedPainting == null) {
+										notify("I couldn't recognize the painting. I will try again.");
 										// Show message that no painting was matched and return to IDLE state.
 										synchronized (this) {
 											currentState = IDLE;
 											ORSMatchResult.reset();
 										}
 									} else {
-										//Log.d("D", " ---- MatchedPainting was ---- " + matchedPainting.title());
-										// Do a nice animation with the matched painting.
+										notify(matchedPainting.title() + " by " + matchedPainting.artist() + ".");
 										// THIS IS PURELY FOR TESTING THE AUGMENTATION
-										List<String> imageUIDs = new ArrayList<String>();
-										imageUIDs.add("a2test");
-										new ImageDownloadThread(parentContext, imageUIDs, imageDownloadResult).start();
-										synchronized (this) {
-											currentState = WAIT_FOR_IMAGE_DOWNLOAD;
-											ORSMatchResult.reset();
+										relevantPaintings = ORSMatchResult.getRelevantPaintings();
+										if (relevantPaintings == null || relevantPaintings.size() == 0) {
+											notify("No relevant paintings were found. I will try again.");
+											// Return to IDLE state.
+											synchronized (this) {
+												currentState = IDLE;
+												ORSMatchResult.reset();
+											}
+										} else {
+											List<String> imageUIDs = new ArrayList<String>();
+											for (Painting p : relevantPaintings) {
+												imageUIDs.add(p.pid());
+											}
+											String serverIP = getServerIP();
+											if (serverIP == null)
+												return;
+											new ImageDownloadThread(serverIP, imageUIDs, imageDownloadResult).start();
+											// Change state.
+											synchronized (this) {
+												currentState = WAIT_FOR_IMAGE_DOWNLOAD;
+												ORSMatchResult.reset();
+											}
 										}
 									}
-									//if (threadResult.getRelevantPaintings() == null) {
-										// Show message that no relevant paintings were found and return
-										// to IDLE state.
-									//	synchronized (this) {
-									//		currentState = IDLE;
-									//	}
-									//} else {
-									//	paintingsToDraw = threadResult.getRelevantPaintings();
-									//	synchronized (this) {
-									//		currentState = AUGMENTING_VIDEO;
-									//	}
-									//}
 								} else {
-									// Show message that an error occured and return to IDLE state.
+									notify("Error in recognizing the painting. I will try again.");
 									synchronized (this) {
 										currentState = IDLE;
 										ORSMatchResult.reset();
@@ -313,35 +368,102 @@ public class DrawingBob extends View implements StabilityListener
 								}
 							}
 							break;
+						
+						////////////////////////////////////////////////
+						// WAIT_FOR_IMAGE_DOWNLOAD					  //
+						// ------------------------					  //
+					 	// Wait for the relevant painting images to	  //
+						// be downloaded by the downloader thread.	  //
+						////////////////////////////////////////////////
 						case WAIT_FOR_IMAGE_DOWNLOAD:
+						
 							if (imageDownloadResult.isFinished()) {
-								//Log.d("D", " ---- Image Download finished ---- ");
 								if (imageDownloadResult.isSuccessful()) {
-								//	Log.d("D", " ---- Image Download was successful ---- ");
 									synchronized (this) {
-										imagesToDraw = imageDownloadResult.getDownloadedImages();
-										currentState = AUGMENTING_VIDEO;
+										relevantPaintingsImgs = imageDownloadResult.getDownloadedImages();
+										if (relevantPaintingsImgs != null && relevantPaintingsImgs.size() > 0) {
+											currentState = AUGMENTING_VIDEO;
+										} else {
+											// Display a popup to the user and return to IDLE.
+											currentState = IDLE;
+										}
+										imageDownloadResult.reset();
+									}
+								} else {
+									notify("Error in downloading the relevant paintings. I will try again.");
+									synchronized(this) {
+										currentState = IDLE;
 										imageDownloadResult.reset();
 									}
 								}
 							}
 							break;
+						
+						/////////////////////////////////////////////////
+						// AUGMENTING_VIDEO						  	   //
+						// -----------------						   //
+						// We have the images to overlay, we now track //
+						// the corners, calculate a transformation	   //
+						// matrix and overlay the current image.	   //
+						/////////////////////////////////////////////////
 						case AUGMENTING_VIDEO:
-							Bitmap currentImage = imagesToDraw.get(currentImgIndex);
-							canvas.drawBitmap(currentImage, 0, 0, null);
-				        	// (6) Enable gesture recognition.
-							//CvPoint trackedCorners = trackCorners();
-							//synchronized (this) {
-							//	drawCurrentImage();		
-							//}
+						
+							Bitmap currentImage;
+							CvMat srcMatrix;
+							synchronized(this) {
+								currentImage = relevantPaintingsImgs.get(currentImgIndex);
+								srcMatrix = currImgSrcMatrix;
+							}
+							updateCvMat(srcMatrix, currentImage);
+							CvPoint trackedCorners = trackCorners(refCorners);
+							CvMat dstMatrix = CvMat.create(4, 2);
+							updateCvMat(dstMatrix, trackedCorners);
+							refCorners = trackedCorners;
+							Rect rect = new Rect();
+							for (int i = 0; i < 4; i++) {
+								CvPoint p = refCorners.position(i);
+								rect.top = (int) (p.y() * aspectY);
+								rect.bottom = rect.top + 5;
+								rect.left = (int) (p.x() * aspectX);
+								rect.right = rect.left + 5;
+								canvas.drawRect(rect, paintRed);
+							}
+							// Find the transformation matrix.
+							CvMat hMatrix = CvMat.create(3, 3);
+							cvFindHomography(srcMatrix, dstMatrix, hMatrix);
+
+							// Draw the transformed bitmap.
+							float[] values = new float[9];
+							for (int i = 0; i < 9; i++) {
+								values[i] = (float) hMatrix.get(i);
+							}
+							Matrix transformMatrix = new Matrix();
+							transformMatrix.setValues(values);
+							canvas.drawBitmap(currentImage, transformMatrix, null);
+							
 							break;
+						
+						//////////////////////////////////////////////
+						// IDLE							 		 	//
+						// -----						  			//
+						// "Waits" for the mobile to get stable 	//
+						// enough for painting detection.			//
+						//////////////////////////////////////////////
 						case IDLE: 
 							break;
 						default:
 							break;
 					}
 					break;
+					
 				case SHOWOFF_BEHAVIOUR:
+					
+					/////////////////////////////////////////////////////
+					// SHOWOFF BEHAVIOUR					  	       //
+					// ------------------						       //
+				 	// Presentation-oriented mode - no recognition is  //
+					// done, but everything is drawn on the screen.	   //
+					/////////////////////////////////////////////////////
 					CvPoint paintingCorners = new CvPoint(4);
 		        	double area  = extractCorners(paintingCorners);
 		        	drawEdgeImage(canvas);
@@ -351,6 +473,7 @@ public class DrawingBob extends View implements StabilityListener
 	        		//List<FeaturePoint> fastCorners = Fast12.detect(grayScale2D, imageWidth, imageHeight, 
 					//		   FAST_THRESHOLD, MAX_NUM_OF_FEATURES);
 	        		//drawFastCorners(fastCorners, canvas);
+				
 				default:
 					break;
         	}
@@ -361,11 +484,50 @@ public class DrawingBob extends View implements StabilityListener
         super.onDraw(canvas);
 	}
 
-	private void drawCurrentImage() {
-		// TODO Auto-generated method stub
-		
+	private void notify(String msg)
+	{
+		Toast toast = Toast.makeText(parentContext, msg, Toast.LENGTH_SHORT);
+		toast.setGravity(Gravity.CENTER, 0, 0);
+		toast.show();
 	}
-
+	
+	private String getServerIP()
+	{
+		String serverIP = Prefs.getPref_serverIP(parentContext);
+		if (serverIP == null || serverIP.equals("")) {
+			notify("Server IP address was not specified.");
+			return null;
+		}
+		if (serverIP.split(":").length < 2) {
+			notify("Server IP address does not include port.");
+			return null;
+		}
+		return serverIP;
+	}
+	
+	private synchronized void updateCvMat(CvMat matrix, Bitmap painting) 
+	{
+		int width = painting.getWidth();
+		int height = painting.getHeight();
+		matrix.put(0, 0, width);
+		matrix.put(0, 1, 0);
+		matrix.put(1, 0, 0);
+		matrix.put(1, 1, 0);
+		matrix.put(2, 0, 0);
+		matrix.put(2, 1, height);
+		matrix.put(3, 0, width);
+		matrix.put(3, 1, height);
+	}
+	
+	private synchronized void updateCvMat(CvMat matrix, CvPoint corners) 
+	{
+		for (int i = 0; i < 4; i++) {
+			CvPoint p = corners.position(i);
+			matrix.put(i, 0, p.x() * aspectX);
+			matrix.put(i, 1, p.y() * aspectY);
+		}
+	}
+	
 	private double[][] extractBoundingRect(CvPoint paintingCorners, Canvas canvas) {
 		int minX = imageWidth;
 		int maxX = 0;
@@ -378,10 +540,10 @@ public class DrawingBob extends View implements StabilityListener
 			maxX = Math.max(maxX, p.x());
 			maxY = Math.max(maxY, p.y());
 		}
-		canvas.drawLine((imageWidth - minX) * aspectX, minY * aspectY, (imageWidth - maxX) * aspectX, minY * aspectY, paintGreen);
-		canvas.drawLine((imageWidth - maxX) * aspectX, minY * aspectY, (imageWidth - maxX) * aspectX, maxY * aspectY, paintGreen);
-		canvas.drawLine((imageWidth - maxX) * aspectX, maxY * aspectY, (imageWidth - minX) * aspectX, maxY * aspectY, paintGreen);
-		canvas.drawLine((imageWidth - minX) * aspectX, maxY * aspectY, (imageWidth - minX) * aspectX, minY * aspectY, paintGreen);
+		canvas.drawLine(minX * aspectX, minY * aspectY, maxX * aspectX, minY * aspectY, paintGreen);
+		canvas.drawLine(maxX * aspectX, minY * aspectY, maxX * aspectX, maxY * aspectY, paintGreen);
+		canvas.drawLine(maxX * aspectX, maxY * aspectY, minX * aspectX, maxY * aspectY, paintGreen);
+		canvas.drawLine(minX * aspectX, maxY * aspectY, minX * aspectX, minY * aspectY, paintGreen);
 		double[][] subregion = new double[maxY - minY][maxX - minX];
 		for (int y = minY; y < maxY; y++) {
 			for (int x = minX; x <maxX; x++) {
@@ -391,8 +553,23 @@ public class DrawingBob extends View implements StabilityListener
 		return subregion;
 	}
 
-	private CvPoint trackCorners() {
-		// TODO Auto-generated method stub
+	private CvPoint trackCorners(CvPoint previousCorners) 
+	{
+		//CvPoint trackedCorners = new CvPoint(4);
+		//for (int i = 0; i < 4; i++) {
+		//	CvPoint singleCorner = trackSingleCorner(previousCorners.position(i));
+		//	trackedCorners.position(i).x(singleCorner.position(i).x());
+		//	trackedCorners.position(i).y(singleCorner.position(i).y());
+		//}
+		//return trackedCorners;
+		return previousCorners;
+	}
+	
+	private CvPoint trackSingleCorner(CvPoint corner)
+	{
+		//CvPoint trackedCorner = new CvPoint(1);
+		// Extract region of interest
+		// Find corners
 		return null;
 	}
 
@@ -420,7 +597,7 @@ public class DrawingBob extends View implements StabilityListener
 				prevY = currY;
 				currX = corners.position(i % 4).x();
 				currY = corners.position(i % 4).y();
-				canvas.drawLine((imageWidth - prevX) * aspectX, prevY * aspectY, (imageWidth - currX) * aspectX, currY * aspectY, paintGreen);
+				canvas.drawLine(prevX * aspectX, prevY * aspectY, currX * aspectX, currY * aspectY, paintGreen);
 			} else {
 				currX = corners.position(i % 4).x();
 				currY = corners.position(i % 4).y();
@@ -441,7 +618,7 @@ public class DrawingBob extends View implements StabilityListener
     			int imageLine = j * imageStride;
     			int pixVal = imageBuffer.getInt(imageLine + i);
     			currPaint.setARGB(255, pixVal, pixVal, pixVal);
-    			canvas.drawPoint((imageWidth - 1 - i)*aspectX, j*aspectY, currPaint);
+    			canvas.drawPoint((imageWidth - 1 - i) * aspectX, j * aspectY, currPaint);
     		}
 		}
 	}
@@ -491,7 +668,7 @@ public class DrawingBob extends View implements StabilityListener
         				maxArea = area;
         				for (int i = 0; i < 4; ++i) {
         					CvPoint point = new CvPoint(cvGetSeqElem(points, i));
-        					corners.position(i).x(point.x());
+        					corners.position(i).x(imageWidth - point.x());
         					corners.position(i).y(point.y());
         				}
         			}

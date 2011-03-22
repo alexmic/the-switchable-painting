@@ -8,13 +8,12 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.util.Log;
 
 public class StabilityMonitor implements SensorEventListener 
 {
 	private final float HIGH_PASS_FILTER_THRESHOLD = 0.1f;
 	private final int DELAY_COUNTER_MAX_VALUE = 1;
-	private final long CONTINUOUS_STABILITY_THRESHOLD = 500; // in milliseconds.
+	private final long CONTINUOUS_STABILITY_THRESHOLD = 200; // in milliseconds.
 	
 	private SensorManager sensorManager = null;
 	private Sensor accelerationSensor = null;
