@@ -8,7 +8,13 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import model.Painting;
 
 import util.json.JSONArray;
 import util.json.JSONException;
@@ -16,8 +22,14 @@ import util.json.JSONObject;
 
 import com.google.code.morphia.Datastore;
 
+import cv.descriptor.FeatureVector;
+import cv.descriptor.FeatureVectorType;
+import cv.descriptor.SiftFeatureVector;
+
 public class MatchHandler implements Handler {
 
+	private final float D_THRESHOLD = 0.2f;
+	
 	private Datastore ds = null;
 	
 	public MatchHandler(Datastore ds)
@@ -34,21 +46,34 @@ public class MatchHandler implements Handler {
 	@Override
 	public String post(Map<String, String> requestParams) throws HttpHandlerErrorException {
 		
-		System.out.println(requestParams.get("payload"));
 		JSONObject response = new JSONObject();
 		JSONObject matched = new JSONObject();
+		
 		try {
-			matched.put("pid", "1");
-			matched.put("title", "Test Matched Painting");
-			matched.put("artist", "Alex Michael");
-			JSONArray relevant = getRelevantPaintings(matched);
-			response.put("matched", matched);
-			response.put("relevant", relevant);
-		} catch(JSONException ex) {
-			throw new HttpHandlerErrorException(ex.getMessage(), ex);
-		} catch(IOException ex) {
+			if (requestParams.containsKey("payload")) {
+				JSONObject payload = new JSONObject(requestParams.get("payload"));
+				if (payload.has("s") && payload.has("v")) {
+					int strategy = payload.getInt("s");
+					JSONArray vectors = payload.getJSONArray("v");
+					Painting receivedPainting = new Painting();
+					receivedPainting.setFeatureVectors(toFVList(vectors));
+					Painting bestMatch = getBestMatch(strategy, receivedPainting);
+					matched.put("pid", bestMatch.getId());
+					matched.put("title", bestMatch.getTitle());
+					matched.put("artist", bestMatch.getArtist());
+					JSONArray relevant = getRelevantPaintings(matched);
+					response.put("matched", matched);
+					response.put("relevant", relevant);
+				} else {
+					throw new Exception("Request does not contain both strategy and vectors.");
+				}
+			} else {
+				throw new Exception("Request does not contain a payload.");
+			}
+		} catch(Exception ex) {
 			throw new HttpHandlerErrorException(ex.getMessage(), ex);
 		}
+		
 		return response.toString();
 	}
 
@@ -79,8 +104,40 @@ public class MatchHandler implements Handler {
 		while ((temp = in.readLine()) != null) {
 			response.append(temp);
 		}
-		System.out.println(response.toString());
 		return new JSONArray(response.toString());
 	}
 
+	private Painting getBestMatch(int strategy, Painting receivedPainting)
+	{
+		List<Painting> storedPaintings = ds.find(Painting.class, "descriptorType", strategy).asList();
+		HashMap<Painting, Float> scores = new HashMap<Painting, Float>();
+		for (Painting p : storedPaintings) {
+			if (p.getFeatureVectors() == null) continue;
+				    scores.put(p, receivedPainting.getMatchScore(p, D_THRESHOLD));
+		}
+		float max = 0;
+		Painting bestMatch = null;
+		for (Painting p : scores.keySet()) {
+			if (scores.get(p) > max) {
+				max = scores.get(p);
+				bestMatch = p;
+			}
+		}
+		return bestMatch;
+	}
+	
+	private List<FeatureVector> toFVList(JSONArray jsonVectors) throws JSONException
+	{
+		List<FeatureVector> fvList = new ArrayList<FeatureVector>();
+		for (int i = 0; i < jsonVectors.length(); ++i) {
+			JSONObject obj = jsonVectors.getJSONObject(i);
+			JSONArray descriptor = obj.getJSONArray("d");
+			float[] fDescriptor = new float[descriptor.length()];
+			for (int j = 0; j < descriptor.length(); ++j) {
+				fDescriptor[j] = (float) descriptor.getLong(j);
+			}
+			fvList.add(new SiftFeatureVector(obj.getInt("x"), obj.getInt("y"), fDescriptor)); 
+		}
+		return fvList;
+	}
 }

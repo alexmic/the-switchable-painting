@@ -18,6 +18,9 @@ import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.GestureDetector.SimpleOnGestureListener;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -25,9 +28,17 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainScreen extends Activity implements SurfaceHolder.Callback, StabilityListener, OnClickListener 
 {
+
+    /* We will only consider the Nexus One - since this is not
+	 * a commercial app, we hardcode the preview size.
+	 */
+	private final int PREVIEW_WIDTH = 480;
+	private final int PREVIEW_HEIGHT = 320;
+    
 	private SurfaceView surfaceView = null;
 	private SurfaceHolder surfaceHolder = null;
 	private Camera camera = null;
@@ -36,12 +47,6 @@ public class MainScreen extends Activity implements SurfaceHolder.Callback, Stab
 	private DrawingBob bob = null;
 	
 	private boolean hasPlayedStabilitySound = false;
-	
-	/* We will only consider the Nexus One - since this is not
-	 * a commercial app, we hardcode the preview size.
-	 */
-	private final int PREVIEW_WIDTH = 480;
-	private final int PREVIEW_HEIGHT = 320;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) 
@@ -64,6 +69,7 @@ public class MainScreen extends Activity implements SurfaceHolder.Callback, Stab
 		Button prefsButton = (Button) findViewById(R.id.prefsButton);
 		prefsButton.setOnClickListener(this);
 		addContentView(bob, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));	
+        
 	}
 
 	@Override
@@ -188,5 +194,5 @@ public class MainScreen extends Activity implements SurfaceHolder.Callback, Stab
         	}
         );
 	}
-
+	
 }

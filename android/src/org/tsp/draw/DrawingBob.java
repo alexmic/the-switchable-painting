@@ -1,5 +1,6 @@
 package org.tsp.draw;
 
+import static com.googlecode.javacv.cpp.opencv_calib3d.cvFindHomography;
 import static com.googlecode.javacv.cpp.opencv_core.CV_WHOLE_SEQ;
 import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
 import static com.googlecode.javacv.cpp.opencv_core.cvClearMemStorage;
@@ -13,7 +14,6 @@ import static com.googlecode.javacv.cpp.opencv_imgproc.cvContourArea;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvContourPerimeter;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvDilate;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvFindContours;
-import static com.googlecode.javacv.cpp.opencv_calib3d.cvFindHomography;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -39,7 +39,10 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 
@@ -56,10 +59,12 @@ import com.googlecode.javacv.cpp.opencv_core.IplImage;
  */
 public class DrawingBob extends View implements StabilityListener
 {
+	private final int SWIPE_MIN_DISTANCE = 120;
+    private final int SWIPE_MAX_OFF_PATH = 250;
+    private final int SWIPE_THRESHOLD_VELOCITY = 200;
+	
 	private final int FAST_THRESHOLD = 18;
 	private final int MAX_NUM_OF_FEATURES = 250;
-	private final int WHITE_THRESHOLD = 120;
-	private final int WHITE_INTENSITY = 255;
 	
 	private final int SHOWOFF_BEHAVIOUR = 0;
 	private final int NORMAL_BEHAVIOUR = 1;
@@ -105,10 +110,14 @@ public class DrawingBob extends View implements StabilityListener
 	
 	private List<Bitmap> relevantPaintingsImgs = null;
 	private List<Painting> relevantPaintings = null;
+	private List<CvMat> relevantPaintingsMats = null;
 	
 	private CvMat currImgSrcMatrix = null;
 	
 	private CvPoint refCorners = null;
+	
+	private GestureDetector gestureDetector;
+	private View.OnTouchListener gestureListener;
 	
 	public DrawingBob(Context context, int w, int h) 
 	{
@@ -116,6 +125,16 @@ public class DrawingBob extends View implements StabilityListener
 		
 		parentContext = context;
 		
+		gestureDetector = new GestureDetector(new MyGestureDetector());
+	    gestureListener = new View.OnTouchListener() {
+	    	public boolean onTouch(View v, MotionEvent event) 
+	    	{
+	    		return gestureDetector.onTouchEvent(event);
+	        }
+	    };
+	    
+	    this.setOnTouchListener(gestureListener);
+	    
 		paintRed = new Paint();
 		paintRed.setStyle(Paint.Style.FILL);
 		paintRed.setColor(Color.RED);
@@ -189,6 +208,7 @@ public class DrawingBob extends View implements StabilityListener
 		currentState = IDLE;
 		relevantPaintings = null;
 		relevantPaintingsImgs = null;
+		relevantPaintingsMats = null;
 		currentImgIndex = 0;
 		return this;
 	}
@@ -360,7 +380,7 @@ public class DrawingBob extends View implements StabilityListener
 										}
 									}
 								} else {
-									notify("Error in recognizing the painting. I will try again.");
+									notify("Error occured when matching the painting. I will try again.");
 									synchronized (this) {
 										currentState = IDLE;
 										ORSMatchResult.reset();
@@ -382,6 +402,12 @@ public class DrawingBob extends View implements StabilityListener
 									synchronized (this) {
 										relevantPaintingsImgs = imageDownloadResult.getDownloadedImages();
 										if (relevantPaintingsImgs != null && relevantPaintingsImgs.size() > 0) {
+											if (relevantPaintingsMats == null) {
+												relevantPaintingsMats = new ArrayList<CvMat>();
+											}
+											for (Bitmap p : relevantPaintingsImgs) {
+												relevantPaintingsMats.add(cvMatFromBitmap(p));
+											}
 											currentState = AUGMENTING_VIDEO;
 										} else {
 											// Display a popup to the user and return to IDLE.
@@ -390,7 +416,7 @@ public class DrawingBob extends View implements StabilityListener
 										imageDownloadResult.reset();
 									}
 								} else {
-									notify("Error in downloading the relevant paintings. I will try again.");
+									notify("Error occured in downloading the relevant paintings. I will try again.");
 									synchronized(this) {
 										currentState = IDLE;
 										imageDownloadResult.reset();
@@ -412,9 +438,8 @@ public class DrawingBob extends View implements StabilityListener
 							CvMat srcMatrix;
 							synchronized(this) {
 								currentImage = relevantPaintingsImgs.get(currentImgIndex);
-								srcMatrix = currImgSrcMatrix;
+								srcMatrix = relevantPaintingsMats.get(currentImgIndex);
 							}
-							updateCvMat(srcMatrix, currentImage);
 							CvPoint trackedCorners = trackCorners(refCorners);
 							CvMat dstMatrix = CvMat.create(4, 2);
 							updateCvMat(dstMatrix, trackedCorners);
@@ -505,8 +530,9 @@ public class DrawingBob extends View implements StabilityListener
 		return serverIP;
 	}
 	
-	private synchronized void updateCvMat(CvMat matrix, Bitmap painting) 
+	private synchronized CvMat cvMatFromBitmap(Bitmap painting) 
 	{
+		CvMat matrix = CvMat.create(4, 2);
 		int width = painting.getWidth();
 		int height = painting.getHeight();
 		matrix.put(0, 0, width);
@@ -517,6 +543,7 @@ public class DrawingBob extends View implements StabilityListener
 		matrix.put(2, 1, height);
 		matrix.put(3, 0, width);
 		matrix.put(3, 1, height);
+		return matrix;
 	}
 	
 	private synchronized void updateCvMat(CvMat matrix, CvPoint corners) 
@@ -678,5 +705,50 @@ public class DrawingBob extends View implements StabilityListener
         }
         return maxArea;
 	}
+
+	class MyGestureDetector extends SimpleOnGestureListener {
+        
+		//@Override
+		//public boolean onDown(MotionEvent e1) 
+		//{
+		//	return true;
+		//}
+		
+		@Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) 
+		{
+        	try {
+                if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH)
+                    return false;
+                // right to left swipe
+                if(e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+                    // Left Swipe
+                	synchronized (this) {
+                		if (relevantPaintings != null && relevantPaintings.size() > 0) {
+                			currentImgIndex--;
+                			if (currentImgIndex < 0) {
+                				currentImgIndex = relevantPaintings.size() - 1;
+                			}
+                		}
+                    }
+                }  else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+                	// Right Swipe
+                	synchronized (this) {
+                		if (relevantPaintings != null && relevantPaintings.size() > 0) {
+                			currentImgIndex = (currentImgIndex + 1) % relevantPaintings.size();
+                		}
+                    }
+                }
+                synchronized (this) {
+                	Painting newPainting = relevantPaintings.get(currentImgIndex);
+        			DrawingBob.this.notify(newPainting.title() + " by " + newPainting.artist());
+                }
+            } catch (Exception e) {
+                // nothing
+            }
+            return false;
+        }
+
+    }
 
 }	
