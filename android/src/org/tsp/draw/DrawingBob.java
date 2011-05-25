@@ -706,13 +706,13 @@ public class DrawingBob extends View implements StabilityListener
         return maxArea;
 	}
 
-	class MyGestureDetector extends SimpleOnGestureListener {
-        
-		//@Override
-		//public boolean onDown(MotionEvent e1) 
-		//{
-		//	return true;
-		//}
+	class MyGestureDetector extends SimpleOnGestureListener 
+	{
+		@Override 
+		public boolean onSingleTapConfirmed(MotionEvent e)
+		{
+			return super.onSingleTapConfirmed(e);
+		}
 		
 		@Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) 

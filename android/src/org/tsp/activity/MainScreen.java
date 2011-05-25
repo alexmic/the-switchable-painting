@@ -69,7 +69,6 @@ public class MainScreen extends Activity implements SurfaceHolder.Callback, Stab
 		Button prefsButton = (Button) findViewById(R.id.prefsButton);
 		prefsButton.setOnClickListener(this);
 		addContentView(bob, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));	
-        
 	}
 
 	@Override

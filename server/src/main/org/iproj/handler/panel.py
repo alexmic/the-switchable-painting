@@ -100,6 +100,7 @@ class UploadPanelHandler(base.BaseHandler):
             title = self.get_argument("painting-title")
             artist = self.get_argument("painting-artist")
             strategy = self.get_argument("painting-strategy")
+            tags = json_encode(map(str.strip, self.get_argument("painting-tags").split(",")))
             if not title:
                 self.write(self.make_chunk({"success":False, "next_msg":"Please specify the painting's title.", "last":True}))
                 self.finish()
@@ -110,7 +111,7 @@ class UploadPanelHandler(base.BaseHandler):
                 service = ORSService()
                 if len(file) == 1:
                     id = file[0].split(".")[0]
-                    service.put_painting(id, title, artist, strategy, self.async_callback(self.on_service_response))
+                    service.describe_painting(id, title, artist, strategy, tags, self.async_callback(self.on_service_response))
                 else:
                     self.write(self.make_chunk({"success":False, "next_msg":"No file selected for upload.", "last":True}))
                     self.finish()

@@ -1,11 +1,8 @@
 
 import http.core.HttpDispatcher;
 import http.core.HttpServer;
-import http.core.handler.CollectionHandler;
+import http.core.handler.DescribeHandler;
 import http.core.handler.MatchHandler;
-import http.core.handler.PaintingHandler;
-import http.core.handler.SimMatchHandler;
-import http.core.handler.TestFDHandler;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -101,10 +98,9 @@ public class ORS
 		
 		// Wire up the routes.
 		HttpDispatcher dispatcher = new HttpDispatcher();
-		dispatcher.addRoute("/painting", new TestFDHandler(ds))
+		dispatcher.addRoute("/describe", new DescribeHandler(ds))
 		  		  .addRoute("/match", new MatchHandler(ds))
-		  		  .addRoute("/collection", new CollectionHandler(ds))
-		          .ignore("/favicon.ico");
+ 		          .ignore("/favicon.ico");
 		
 		// Returning false immediately means that this call has failed, otherwise this call will hang since the
 		// server loop will be entered.

@@ -1,43 +1,50 @@
 package http.core.handler;
 
+
 import http.exception.HttpHandlerErrorException;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import model.Painting;
+import util.json.JSONArray;
+import util.json.JSONException;
 import util.json.JSONObject;
+
 import com.google.code.morphia.Datastore;
+
 import cv.descriptor.FeatureVector;
 import cv.descriptor.strategy.Context;
 import cv.descriptor.strategy.DescriptorContext;
 import cv.detector.MultiScaleFast12;
 import cv.detector.fast.FeaturePoint;
 
-public class TestFDHandler implements Handler {
-	
+public class DescribeHandler implements Handler {
+
 	private Datastore ds = null;
 	
-	public TestFDHandler(Datastore ds)
+	public DescribeHandler(Datastore ds)
 	{
 		this.ds = ds;
 	}
 	
 	@Override
-	public String get(Map<String, String> requestParams) {
-		// TODO Auto-generated method stub
-		return null;
+	public String get(Map<String, String> requestParams) 
+	{
+		return "GET handled.";
 	}
 
 	@Override
-	public String post(Map<String, String> requestParams) {
-		// TODO Auto-generated method stub
-		return null;
+	public String put(Map<String, String> requestParams) 
+	{
+		return "PUT handled.";
 	}
 
 	@Override
-	public String put(Map<String, String> requestParams) throws HttpHandlerErrorException {
+	public String post(Map<String, String> requestParams) throws HttpHandlerErrorException
+	{
 		String path = "/Users/alexis/Desktop/Dev/IndividualProject/server/storage/img";
 		if (requestParams.containsKey("id")) {
 			String pID = requestParams.get("id");
@@ -45,14 +52,16 @@ public class TestFDHandler implements Handler {
 			String imgPath = path + "/" + pIDChars[0] + "/" + pIDChars[1] + "/" + pID;
 			String[] exts = {"png", "jpg", "jpeg", "gif"};
 			String ext = "";
+			
+			// Get image from storage.
 			for (int i = 0; i < exts.length; ++i) {
 				if (new File(imgPath + "." + exts[i]).exists()) {
 					ext = exts[i];
 					break;
 				}
 			}
-			//String drawnImgPath = path + "/" + pIDChars[0] + "/" + pIDChars[1] + "/" + pID + "_CORNERS." + ext;
-			//BufferedImage img;
+			
+			// Describe image suing the appropriate strategy.
 			try {
 				
 				// Create the descriptor strategy context.
@@ -85,29 +94,23 @@ public class TestFDHandler implements Handler {
 					multiScaleVectors.addAll(singleScaleVectors);
 					numVectors += singleScaleVectors.size();
 				}
-				//for (FeatureVector fv : multiScaleVectors) {
-				//	for (float f : fv.descriptor()) 
-				//		System.out.println(f);
-				//}
-				//Draw up some rectangles to have something to demonstrate.
-				//Graphics2D g2 = img.createGraphics();
-				//g2.setColor(new Color(250, 0 ,0));
-				//int count = featurePoints.size();
-				//for (int i = 0; i < count; ++i) {
-				//	FeaturePoint p = featurePoints.get(i);
-				//	g2.drawRect(p.x(), p.y(), 1, 1);
-				//}
 				
+				// Get tags if any.
+				List<String> tags = new ArrayList<String>();
+				if (requestParams.containsKey("tags")) {
+					tags = toStringList(new JSONArray(requestParams.get("tags")));
+				}
+				
+				// Save painting.
 				Painting newPainting = new Painting()
 									   .setDescriptorType(keycode)
 									   .setPaintingId(pID)
 									   .setArtist(requestParams.containsKey("artist")? requestParams.get("artist"): "Unknown")
 									   .setTitle(requestParams.containsKey("title")? requestParams.get("title"): "Untitled")
+									   .setTags(tags)
 									   .setFeatureVectors(multiScaleVectors)
 									   .setScaleIndices(scaleIndices);
 				ds.save(newPainting);
-				//File out = new File(drawnImgPath);
-				//ImageIO.write(img, "jpg", out);
 				return new JSONObject().put("s", true).put("id", pID).put("msg", "").toString();
 			
 			} catch (Exception e) {
@@ -128,10 +131,19 @@ public class TestFDHandler implements Handler {
 		}
 	}
 
+	private List<String> toStringList(JSONArray jsonTags) throws JSONException 
+	{
+		List<String> tags = new ArrayList<String>();
+		for (int i = 0; i < jsonTags.length(); ++i) {
+			tags.add(jsonTags.getString(i)); 
+		}
+		return tags;
+	}
+
 	@Override
-	public String delete(Map<String, String> requestParams) {
-		// TODO Auto-generated method stub
-		return null;
+	public String delete(Map<String, String> requestParams) 
+	{
+		return "DELETE handled.";
 	}
 
 }

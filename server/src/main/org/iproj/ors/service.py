@@ -8,17 +8,10 @@ class ORSService:
     def __init__(self):
         self.base_uri = "http://localhost:4444/"
     
-    def put_painting(self, id, title, artist, strategy, cback):
-        self.__do(self.__get_request(uri="painting", method="PUT", params={"id" : id, "title" : title, "artist" : artist, "s" : strategy}), cback)
-    
-    def get_painting(self, id, cback):
-        self.__do(self.__get_request(uri="painting", method="GET", params={"id" : id}), cback)
-    
-    def get_associations(self, id, cback):
-        self.__do(self.__get_request(uri="collection", method="GET", params={"id" : id}), cback)
-    
-    def add_association(self, id, new_assoc_id, cback):
-        self.__do(self.__get_request(uri="collection", method="POST", params={"id" : id, "na_id" : id}), cback)
+    def describe_painting(self, id, title, artist, strategy, tags, cback):
+        self.__do(self.__get_request(uri="describe", method="POST",
+                                     params={"id" : id, "title" : title, "artist" : artist, "s" : strategy, "tags" : tags}),
+                                     cback)
     
     def sim_match(self, strategy, cback):
         self.__do(self.__get_request(uri="match", method="GET", params={"s": strategy}), cback)
