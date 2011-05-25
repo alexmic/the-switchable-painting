@@ -708,6 +708,12 @@ public class DrawingBob extends View implements StabilityListener
 
 	class MyGestureDetector extends SimpleOnGestureListener 
 	{
+		@Override
+		public boolean onDown(MotionEvent e) 
+		{
+		    return true;
+		}
+		
 		@Override 
 		public boolean onSingleTapConfirmed(MotionEvent e)
 		{
@@ -720,7 +726,6 @@ public class DrawingBob extends View implements StabilityListener
         	try {
                 if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH)
                     return false;
-                // right to left swipe
                 if(e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
                     // Left Swipe
                 	synchronized (this) {
@@ -750,5 +755,4 @@ public class DrawingBob extends View implements StabilityListener
         }
 
     }
-
 }	

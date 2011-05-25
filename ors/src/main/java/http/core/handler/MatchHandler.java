@@ -58,10 +58,13 @@ public class MatchHandler implements Handler {
 					Painting receivedPainting = new Painting();
 					receivedPainting.setFeatureVectors(toFVList(vectors));
 					Painting bestMatch = getBestMatch(strategy, receivedPainting);
-					matched.put("pid", bestMatch.getId());
-					matched.put("title", bestMatch.getTitle());
-					matched.put("artist", bestMatch.getArtist());
-					JSONArray relevant = getRelevantPaintings(matched);
+					JSONArray relevant = new JSONArray();
+					if (bestMatch != null) {
+						matched.put("pid", bestMatch.getId());
+						matched.put("title", bestMatch.getTitle());
+						matched.put("artist", bestMatch.getArtist());
+						relevant = getRelevantPaintings(matched);
+					}
 					response.put("matched", matched);
 					response.put("relevant", relevant);
 				} else {
@@ -71,6 +74,7 @@ public class MatchHandler implements Handler {
 				throw new Exception("Request does not contain a payload.");
 			}
 		} catch(Exception ex) {
+			System.out.println(ex.getMessage());
 			throw new HttpHandlerErrorException(ex.getMessage(), ex);
 		}
 		
@@ -109,11 +113,12 @@ public class MatchHandler implements Handler {
 
 	private Painting getBestMatch(int strategy, Painting receivedPainting)
 	{
+		System.out.println(strategy);
 		List<Painting> storedPaintings = ds.find(Painting.class, "descriptorType", strategy).asList();
 		HashMap<Painting, Float> scores = new HashMap<Painting, Float>();
 		for (Painting p : storedPaintings) {
 			if (p.getFeatureVectors() == null) continue;
-				    scores.put(p, receivedPainting.getMatchScore(p, D_THRESHOLD));
+			scores.put(p, receivedPainting.getMatchScore(p, D_THRESHOLD));
 		}
 		float max = 0;
 		Painting bestMatch = null;

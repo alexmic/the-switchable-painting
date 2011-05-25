@@ -100,7 +100,7 @@ class UploadPanelHandler(base.BaseHandler):
             title = self.get_argument("painting-title")
             artist = self.get_argument("painting-artist")
             strategy = self.get_argument("painting-strategy")
-            tags = json_encode(map(str.strip, self.get_argument("painting-tags").split(",")))
+            tags = json_encode(map(str.strip, self.get_argument("painting-tags") or str('').split(",")))
             if not title:
                 self.write(self.make_chunk({"success":False, "next_msg":"Please specify the painting's title.", "last":True}))
                 self.finish()

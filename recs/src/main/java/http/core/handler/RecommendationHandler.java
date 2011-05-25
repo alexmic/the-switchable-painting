@@ -28,6 +28,7 @@ public class RecommendationHandler implements Handler {
 	@Override
 	public String post(Map<String, String> requestParams) throws HttpHandlerErrorException 
 	{
+		System.out.println("ASFASASGA");
 		JSONArray recommendations = new JSONArray();
 		try {
 			if (requestParams.containsKey("matched")) {
