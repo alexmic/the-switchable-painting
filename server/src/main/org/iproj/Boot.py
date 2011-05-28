@@ -29,7 +29,7 @@ Config = ConfigParser.ConfigParser(allow_no_value=True)
 # Application handlers
 Handlers = [
     ("/api/match", api.MatchHandler),
-    ("/sims/scoring/([0-9]?)", panel.SimPanelHandler),
+    ("/sims/scoring/([0-9]?)/([a-z0-9_]+)", panel.SimPanelHandler),
     ("/panel", panel.MainPanelHandler),
     ("/panel/upload", panel.UploadPanelHandler),
     (r"/storage/(.*)", storage.StorageHandler)

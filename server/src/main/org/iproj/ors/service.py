@@ -2,6 +2,7 @@
 import time
 import tornado.httpclient
 import tornado.httputil
+import urllib
 
 class ORSService:
     
@@ -13,8 +14,8 @@ class ORSService:
                                      params={"id" : id, "title" : title, "artist" : artist, "s" : strategy, "tags" : tags}),
                                      cback)
     
-    def sim_match(self, strategy, cback):
-        self.__do(self.__get_request(uri="match", method="GET", params={"s": strategy}), cback)
+    def sim_match(self, title, strategy, cback):
+        self.__do(self.__get_request(uri="sim_match", method="GET", params={"title": title,"s": strategy}), cback)
     
     def get_match(self, payload, cback):
         self.__do(self.__get_request(uri="match", method="POST", params={"payload" : payload}), cback)
@@ -28,10 +29,10 @@ class ORSService:
         uri = uri or ""
         params = params or {}
         if method == "PUT" or method == "POST":
-            body = self.__get_request_body(params)
+            body = urllib.urlencode(params)
         else:
             body = ""
-            uri += self.__get_qs(params)
+            uri += "?" + urllib.urlencode(params)
         return tornado.httpclient.HTTPRequest(
                            self.base_uri + uri,
                            method=method,
@@ -39,21 +40,3 @@ class ORSService:
     
     def __get_http_version(self):
         return "HTTP/1.1"
-    
-    def __get_request_body(self, params):
-        if len(params) == 0:
-            return ""
-        return self.__format_params(params)
-        
-    def __format_params(self, params):
-        if len(params) == 0:
-            return ""
-        body = ""
-        for key,value in params.iteritems():
-            body += str(key) + "=" + str(value) + "&"
-        return body[:-1]
-    
-    def __get_qs(self, params):
-        if len(params) == 0:
-            return ""
-        return "?" + self.__format_params(params)

@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URLDecoder;
 import java.util.HashMap;
 
 import logging.Log;
@@ -112,7 +113,7 @@ public class HttpParser
 						String[] subTokens = t.split("=");
 						if (subTokens.length == 2) {
 							System.out.println(subTokens[1]);
-							params.put(subTokens[0], subTokens[1]);
+							params.put(subTokens[0], URLDecoder.decode(subTokens[1], "UTF-8"));
 						} else {
 							throw new HttpParseErrorException("Error in HTTP request parameters format.");
 						}

@@ -21,7 +21,7 @@ import com.sun.media.jai.codec.FileSeekableStream;
 
 public class MultiScaleFast12 {
 
-	private final float SCALE_DOWN_FACTOR = (float) ((double) 1 / Math.sqrt(2d)); 
+	private final float SCALE_DOWN_FACTOR = (float) ((double) 1 / Math.sqrt(1.6d)); 
 	private final int FAST_THRESHOLD = 19;
 	private final int MAX_NUM_OF_FEATURES = 150;
 	

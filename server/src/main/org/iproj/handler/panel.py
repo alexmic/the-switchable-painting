@@ -15,22 +15,30 @@ class SimPanelHandler(base.BaseHandler):
                 http_response.rethrow()
             if http_response.code == 200:
                 json_response = json_decode(http_response.body)
-                self.render("sim.html", simid=json_response["simid"], imgs=json_response["imgs"])
+                print json_response
+                if json_response["success"] == True:
+                    self.render("sim.html", simid=json_response["simid"], imgs=json_response["imgs"])
+                else:
+                    self.finish(json_response["err_msg"])
             else:
-                self.write("An error occured.")
-                self.finish()
+                self.finish("An error occured.")
         except Exception, e:
             self.log.error(e)
             self.write(str(e))
             self.finish()
     
     @tornado.web.asynchronous
-    def base_get(self, strategy):
+    def base_get(self, strategy, title):
         """ Renders landing page. """
         strategy = int(strategy or 0)
+        title = self.cap(title)
         if strategy not in [0, 1]:
             strategy = 0
-        service = ORSService().sim_match(strategy, self.on_service_response)
+        service = ORSService().sim_match(title, strategy, self.on_service_response)
+
+    def cap(self, word_with_underscores):
+        parts = word_with_underscores.split("_")
+        return " ".join(map(str.capitalize, parts))
 
     def base_post(self):
         """ Not implemented. """
@@ -100,7 +108,7 @@ class UploadPanelHandler(base.BaseHandler):
             title = self.get_argument("painting-title")
             artist = self.get_argument("painting-artist")
             strategy = self.get_argument("painting-strategy")
-            tags = json_encode(map(str.strip, self.get_argument("painting-tags") or str('').split(",")))
+            tags = json_encode(map(str.strip, (str(self.get_argument("painting-tags") or '')).split(",")))
             if not title:
                 self.write(self.make_chunk({"success":False, "next_msg":"Please specify the painting's title.", "last":True}))
                 self.finish()

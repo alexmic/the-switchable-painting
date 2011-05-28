@@ -61,7 +61,7 @@ public class DescribeHandler implements Handler {
 				}
 			}
 			
-			// Describe image suing the appropriate strategy.
+			// Describe image using the appropriate strategy.
 			try {
 				
 				// Create the descriptor strategy context.

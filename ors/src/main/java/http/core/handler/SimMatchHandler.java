@@ -40,21 +40,29 @@ public class SimMatchHandler implements Handler {
 			s = Integer.valueOf(requestParams.get("s"));
 		}
 		
-		JSONObject response = new JSONObject();
-		JSONArray  imgs     = new JSONArray();
-		float D_THRESHOLD     = 0.2f;
-		Painting cameraPainting = ds.createQuery(Painting.class)
-								  .field("title").equal("Son of Man (Pic 1)")
-								  .field("descriptorType").equal(s).get();
-		
-		if (cameraPainting == null) {
-			return "Painting does not exist.";
+		String title = "Son of Man";
+		if (requestParams.containsKey("title")) {
+			title = requestParams.get("title");
 		}
 		
-		List<Painting> storedPaintings = ds.find(Painting.class, "descriptorType", s).asList();
-		
-		// Calculate matching scores and create JSON response.
 		try {
+			JSONObject response = new JSONObject();
+			response.put("success", true);
+			JSONArray  imgs = new JSONArray();
+			float D_THRESHOLD = 0.2f;
+			Painting cameraPainting = ds.createQuery(Painting.class)
+										.field("title").equal(title)
+										.field("descriptorType").equal(s).get();
+		
+			if (cameraPainting == null) {
+				response.put("success", false);
+				response.put("err_msg", "Painting does not exist.");
+				return response.toString();
+			}
+		
+			List<Painting> storedPaintings = ds.find(Painting.class, "descriptorType", s).asList();
+			
+			// Calculate matching scores and create JSON response.
 			for (Painting p : storedPaintings) {
 				if (p.getFeatureVectors() == null) continue;
 				JSONObject img = new JSONObject();

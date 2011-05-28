@@ -103,8 +103,8 @@ public class SiftPatch {
 			descriptor = suppressBins(normalize(descriptor, length), CUTOFF_THRESHOLD, length);
 			length = length(descriptor);
 			descriptor = normalize(descriptor, length);
-			for (int i = 0; i < descriptor.length; ++i)
-				System.out.println(descriptor[i]);
+			//for (int i = 0; i < descriptor.length; ++i)
+			//	System.out.println(descriptor[i]);
 			Point rotated = rotate(x, y, orientation);
 			featureVectors.add(new SiftFeatureVector(rotated.x, rotated.y, descriptor));
 		}

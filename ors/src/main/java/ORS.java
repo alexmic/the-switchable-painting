@@ -3,6 +3,7 @@ import http.core.HttpDispatcher;
 import http.core.HttpServer;
 import http.core.handler.DescribeHandler;
 import http.core.handler.MatchHandler;
+import http.core.handler.SimMatchHandler;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -100,6 +101,7 @@ public class ORS
 		HttpDispatcher dispatcher = new HttpDispatcher();
 		dispatcher.addRoute("/describe", new DescribeHandler(ds))
 		  		  .addRoute("/match", new MatchHandler(ds))
+		  		  .addRoute("/sim_match", new SimMatchHandler(ds))
  		          .ignore("/favicon.ico");
 		
 		// Returning false immediately means that this call has failed, otherwise this call will hang since the
