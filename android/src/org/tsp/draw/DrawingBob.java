@@ -311,15 +311,18 @@ public class DrawingBob extends View implements StabilityListener
 								
 								if (subregion.length > 0 && subregion[0].length > 0) {
 									// Extract feature points.
+									long start = System.currentTimeMillis();
 									List<FeaturePoint> featurePoints 
 										= Fast12.detect(subregion, subregion[0].length, subregion.length, 
 														FAST_THRESHOLD, MAX_NUM_OF_FEATURES);
-									
+									Log.d("---DRAWING---", "REGION: " + subregion[0].length + "x" + subregion.length);
+									Log.d("---DRAWING---", "FAST features: " + featurePoints.size() + " in " + (System.currentTimeMillis() - start) + " ms.");
 									// Run descriptor.
 									int strategy = Integer.valueOf(Prefs.getPref_selectDescriptor(parentContext));
 									descriptorContext = new DescriptorContext(strategy);
+									start = System.currentTimeMillis();
 									List<FeatureVector> featureVectors = descriptorContext.getFeatureVectors(featurePoints, subregion);
-									
+									Log.d("---DRAWING---", "SIFT features: " + featureVectors.size() + " in " + (System.currentTimeMillis() - start) + " ms.");
 									// Upload feature vectors to ORS.
 									String serverIP = getServerIP();
 									if (serverIP == null)

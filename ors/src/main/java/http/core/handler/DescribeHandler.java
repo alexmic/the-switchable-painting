@@ -78,23 +78,22 @@ public class DescribeHandler implements Handler {
 				long start = System.currentTimeMillis();
 				MultiScaleFast12 msf = new MultiScaleFast12(imgPath + "." + ext, levels);
 				long stop = System.currentTimeMillis();
-				System.out.println("Multiscale FAST: " + (stop - start) + "ms.");
+				System.out.println(imgPath + "="+"Multiscale FAST: " + (stop - start) + "ms.");
 				List<FeatureVector> multiScaleVectors = new ArrayList<FeatureVector>();
 				int[] scaleIndices = new int[levels];
 				int numVectors = 0;
+				start = System.currentTimeMillis();
 				for (int i = 0; i < levels; ++i) {
-					System.out.println("Pyramid level: " + i);
 					List<FeaturePoint> featurePoints = msf.getFeaturesAtLevel(i);
 					double[][] image = msf.getImageAtLevel(i);
-					start = System.currentTimeMillis();
 					List<FeatureVector> singleScaleVectors = descriptorContext.getFeatureVectors(featurePoints, image);
-					stop = System.currentTimeMillis();
-					System.out.println("SIFT for level " + i + ", " + singleScaleVectors.size() + " features: " + (stop - start) + "ms.");
 					scaleIndices[i] = numVectors + singleScaleVectors.size();
 					multiScaleVectors.addAll(singleScaleVectors);
 					numVectors += singleScaleVectors.size();
 				}
-				
+				stop = System.currentTimeMillis();
+				System.out.println(imgPath + "="+"SIFT " + numVectors + " features: " + (stop - start) + "ms.");
+
 				// Get tags if any.
 				List<String> tags = new ArrayList<String>();
 				if (requestParams.containsKey("tags")) {

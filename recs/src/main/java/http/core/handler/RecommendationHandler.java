@@ -2,7 +2,11 @@ package http.core.handler;
 
 import http.exception.HttpHandlerErrorException;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+
+import model.Painting;
 
 import util.json.JSONArray;
 import util.json.JSONException;
@@ -28,30 +32,12 @@ public class RecommendationHandler implements Handler {
 	@Override
 	public String post(Map<String, String> requestParams) throws HttpHandlerErrorException 
 	{
-		System.out.println("ASFASASGA");
 		JSONArray recommendations = new JSONArray();
 		try {
 			if (requestParams.containsKey("matched")) {
-				System.out.println("MATCHED");
 				JSONObject matched = new JSONObject(requestParams.get("matched"));
-				JSONObject rec = new JSONObject();
-				rec.put("pid", "a2test");
-				rec.put("title", "Test Recommended Painting 1");
-				rec.put("artist", "Alex Michael");
-				JSONObject rec2 = new JSONObject();
-				rec2.put("pid", "a2test1");
-				rec2.put("title", "Test Recommended Painting 2");
-				rec2.put("artist", "Alex Michael");
-				JSONObject rec3 = new JSONObject();
-				rec3.put("pid", "a2test2");
-				rec3.put("title", "Test Recommended Painting 3");
-				rec3.put("artist", "Alex Michael");
-				recommendations.put(rec);
-				recommendations.put(rec2);
-				recommendations.put(rec3);
-			} else {
-				System.out.println("NOT MATCHED");
-			}
+				recommendations = getRecommendations(matched);
+			} 
 			return recommendations.toString();
 		} catch (JSONException ex) {
 			throw new HttpHandlerErrorException(ex.getMessage(), ex);
@@ -69,5 +55,21 @@ public class RecommendationHandler implements Handler {
 	{
 		return null;
 	}
-
+	
+	private JSONArray getRecommendations(JSONObject matched) throws JSONException
+	{
+		JSONArray arrayRecommendations = new JSONArray();
+		Painting painting = ds.find(Painting.class, "paintingId", matched.get("pid")).get();
+		painting.getTags();
+		List<Painting> recommendedPaintings = ds.createQuery(Painting.class).field("tags").hasAnyOf(painting.getTags()).asList();
+		for (Painting p : recommendedPaintings) {
+			JSONObject o = new JSONObject();
+			o.put("pid", p.getPaintingId());
+			o.put("title", p.getTitle());
+			o.put("artist", p.getArtist());
+			arrayRecommendations.put(o);
+		}
+		return arrayRecommendations;
+	}
+	
 }

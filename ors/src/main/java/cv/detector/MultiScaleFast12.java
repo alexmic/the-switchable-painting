@@ -31,9 +31,11 @@ public class MultiScaleFast12 {
 	private int levels = 0;
 	private List<List<FeaturePoint>> featurePyramid = null;
 	private List<double[][]> pixelPyramid = null;
+	private String imgPath = null;
 	
 	public MultiScaleFast12(String imgPath, int levels) throws IOException
 	{
+		this.imgPath = imgPath;
 		FileSeekableStream stream = new FileSeekableStream(imgPath);
 	    image = Filter.desaturate(JAI.create("stream", stream));
 		this.levels = levels;
@@ -50,6 +52,8 @@ public class MultiScaleFast12 {
         // We only need down-sampling.
 		ImagePyramid imgPyramid = new ImagePyramid(image, downSampler, downSampler, downSampler, downSampler);
 		RenderedImage curr = imgPyramid.getCurrentImage();
+		System.out.println(imgPath + "="+"Size: " + image.getWidth() + " x " + image.getHeight());
+		int numFeaturePoints = 0;
 		for (int i = 0; i < levels; ++i) {
 		     Raster inputRaster = curr.getData();
 		     int w = inputRaster.getWidth();
@@ -58,10 +62,12 @@ public class MultiScaleFast12 {
 		     inputRaster.getPixels(inputRaster.getMinX(), inputRaster.getMinY(), w, h, pixels);
 		     double[][] D2Pixels = get2DPixelData(pixels, w, h);
 		     List<FeaturePoint> featurePoints = Fast12.detectWithNonMax(D2Pixels, w, h, FAST_THRESHOLD, MAX_NUM_OF_FEATURES);
+		     numFeaturePoints += featurePoints.size();
 		     featurePyramid.add(featurePoints);
 		     pixelPyramid.add(D2Pixels);
 		     curr = imgPyramid.getDownImage();
 		}
+		System.out.println(imgPath + "="+"FAST features: " + numFeaturePoints);
 	}
 	
 	private double[][] get2DPixelData(int[] pixels, int w, int h)

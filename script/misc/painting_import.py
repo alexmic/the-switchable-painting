@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import sys
 import httplib, urllib, mimetypes
 
 def post_multipart(host, selector, fields, files):
@@ -40,20 +41,34 @@ def get_content_type(filename):
 def cap(word_with_underscores):
     parts = word_with_underscores.split("_")
     return " ".join(map(str.capitalize, parts))
-    
-def import_paintings(paintings_path):
+
+def read_tags(path):
+    tag_lines = open(os.path.join(paintings_path, "tags")).readlines()
+    tags = {}
+    for line in tag_lines:
+        tokens = line.split("=")
+        tags[tokens[0]] = str.strip(tokens[1])
+    return tags
+
+def import_paintings(paintings_path, type):
+    tags = (type == "match" and read_tags(paintings_path)) or ""
     conn = httplib.HTTPConnection("localhost", 7070)
     try:
         for file in os.listdir(paintings_path):
             tokens = file.split(".") 
             if len(tokens) == 2 and tokens[1] == "jpg":
-                artist, title = map(cap, tokens[0].split("|"))
-                fields = [("painting-artist", artist), ("painting-title", title), ("painting-strategy", "1"), ("painting-tags", "")]
+                artist, title = tokens[0].split("|")
+                img_tags = (title in tags and tags[title]) or ""
+                artist, title = map(cap, (artist, title))
+                fields = [("painting-artist", artist), ("painting-title", title), ("painting-strategy", "1"), ("painting-tags", img_tags)]
                 files = [("uploaded-file", file, open(os.path.join(paintings_path,file), 'r').read())]
                 post_multipart("localhost:7070", "/panel/upload", fields, files)
     except:
-        pass
+        raise
     
 if __name__ == "__main__":
-    paintings_path = os.path.join("/Users/alexis","Desktop","Dev","TSP","paintings")
-    import_paintings(paintings_path)
+    type = "all"
+    if len(sys.argv) > 1:
+        type = sys.argv[1]
+    paintings_path = os.path.join("/Users/alexis","Desktop","Dev","TSP","paintings",type)
+    import_paintings(paintings_path, type)

@@ -28,7 +28,7 @@ import cv.descriptor.SiftFeatureVector;
 
 public class MatchHandler implements Handler {
 
-	private final float D_THRESHOLD = 0.2f;
+	private final float D_THRESHOLD = 0.5f;
 	
 	private Datastore ds = null;
 	
@@ -60,7 +60,7 @@ public class MatchHandler implements Handler {
 					Painting bestMatch = getBestMatch(strategy, receivedPainting);
 					JSONArray relevant = new JSONArray();
 					if (bestMatch != null) {
-						matched.put("pid", bestMatch.getId());
+						matched.put("pid", bestMatch.getPaintingId());
 						matched.put("title", bestMatch.getTitle());
 						matched.put("artist", bestMatch.getArtist());
 						relevant = getRelevantPaintings(matched);
@@ -74,10 +74,9 @@ public class MatchHandler implements Handler {
 				throw new Exception("Request does not contain a payload.");
 			}
 		} catch(Exception ex) {
-			System.out.println(ex.getMessage());
 			throw new HttpHandlerErrorException(ex.getMessage(), ex);
 		}
-		
+		System.out.println(response.toString());
 		return response.toString();
 	}
 
@@ -123,11 +122,13 @@ public class MatchHandler implements Handler {
 		float max = 0;
 		Painting bestMatch = null;
 		for (Painting p : scores.keySet()) {
+			System.out.println(p.getTitle() + ": " + scores.get(p));
 			if (scores.get(p) > max) {
 				max = scores.get(p);
 				bestMatch = p;
 			}
 		}
+		System.out.println(bestMatch.getTitle());
 		return bestMatch;
 	}
 	

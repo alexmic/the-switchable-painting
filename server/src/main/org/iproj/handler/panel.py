@@ -15,7 +15,6 @@ class SimPanelHandler(base.BaseHandler):
                 http_response.rethrow()
             if http_response.code == 200:
                 json_response = json_decode(http_response.body)
-                print json_response
                 if json_response["success"] == True:
                     self.render("sim.html", simid=json_response["simid"], imgs=json_response["imgs"])
                 else:

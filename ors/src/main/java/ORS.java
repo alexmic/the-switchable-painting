@@ -1,6 +1,7 @@
 
 import http.core.HttpDispatcher;
 import http.core.HttpServer;
+import http.core.handler.BenchmarkHandler;
 import http.core.handler.DescribeHandler;
 import http.core.handler.MatchHandler;
 import http.core.handler.SimMatchHandler;
@@ -102,6 +103,7 @@ public class ORS
 		dispatcher.addRoute("/describe", new DescribeHandler(ds))
 		  		  .addRoute("/match", new MatchHandler(ds))
 		  		  .addRoute("/sim_match", new SimMatchHandler(ds))
+		  		  .addRoute("/benchmark", new BenchmarkHandler(ds))
  		          .ignore("/favicon.ico");
 		
 		// Returning false immediately means that this call has failed, otherwise this call will hang since the
