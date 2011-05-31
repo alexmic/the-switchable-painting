@@ -18,16 +18,23 @@ public final class R {
         public static final int background=0x7f070000;
     }
     public static final class drawable {
-        public static final int icon=0x7f020000;
+        public static final int error=0x7f020000;
+        public static final int icon=0x7f020001;
+        public static final int loading=0x7f020002;
+        public static final int tick=0x7f020003;
     }
     public static final class id {
         public static final int camera_surface=0x7f090000;
         public static final int footer=0x7f090001;
+        public static final int layout_root=0x7f090004;
+        public static final int notification_image=0x7f090005;
+        public static final int notification_text=0x7f090006;
         public static final int prefsButton=0x7f090003;
         public static final int stabilityLabel=0x7f090002;
     }
     public static final class layout {
         public static final int main=0x7f030000;
+        public static final int notification_layout=0x7f030001;
     }
     public static final class raw {
         public static final int beep=0x7f050000;

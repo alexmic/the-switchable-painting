@@ -19,6 +19,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.tsp.activity.MainScreen;
 import org.tsp.activity.Prefs;
 import org.tsp.comm.ImageDownloadThread;
 import org.tsp.comm.ImageDownloadThreadResult;
@@ -31,7 +32,7 @@ import org.tsp.cv.detector.fast.FeaturePoint;
 import org.tsp.model.Painting;
 import org.tsp.stability.StabilityListener;
 
-import android.content.Context;
+import android.app.ProgressDialog;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -41,7 +42,6 @@ import android.graphics.Rect;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
-import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
@@ -69,16 +69,19 @@ public class DrawingBob extends View implements StabilityListener
 	private final int SHOWOFF_BEHAVIOUR = 0;
 	private final int NORMAL_BEHAVIOUR = 1;
 
-	private final int READY_FOR_SNAPSHOT = 2;
-	private final int WAIT_FOR_MATCH_RESULTS = 3;
-	private final int WAIT_FOR_IMAGE_DOWNLOAD = 4;
-	private final int AUGMENTING_VIDEO = 5;
-	private final int IDLE = 6;
-	private final int MIN_AREA_THRESHOLD = 19000;  // (~1:6 ratio)
+	public static final int READY_FOR_SNAPSHOT = 2;
+	public static final int WAIT_FOR_MATCH_RESULTS = 3;
+	public static final int WAIT_FOR_IMAGE_DOWNLOAD = 4;
+	public static final int AUGMENTING_VIDEO = 5;
+	public static final int IDLE = 6;
+	public static final int AWAITING_INPUT = 7;
+	public static final int MIN_AREA_THRESHOLD = 19000;  // (~1:6 ratio)
 	
 	private int currentBehaviour = NORMAL_BEHAVIOUR;
 	private int currentState = IDLE; 
 	private int currentImgIndex = 0;
+	
+	private int downloadImagesCounter = 0;
 	
 	private boolean isPaused = false;
 	
@@ -93,7 +96,7 @@ public class DrawingBob extends View implements StabilityListener
 	private float aspectX = 0f;
 	private float aspectY = 0f;
 	
-	private Context parentContext = null;
+	private MainScreen parentContext = null;
 	
 	private Paint paintRed = null;
 	private Paint paintWhite = null;
@@ -119,7 +122,9 @@ public class DrawingBob extends View implements StabilityListener
 	private GestureDetector gestureDetector;
 	private View.OnTouchListener gestureListener;
 	
-	public DrawingBob(Context context, int w, int h) 
+	private ProgressDialog progressDialog = null;
+	
+	public DrawingBob(MainScreen context, int w, int h) 
 	{
 		super(context);
 		
@@ -201,7 +206,12 @@ public class DrawingBob extends View implements StabilityListener
 	{
 		return imageHeight;
 	}
-
+	
+	public synchronized void setState(int state)
+	{
+		currentState = state;
+	}
+	
 	public synchronized DrawingBob pause()
 	{
 		isPaused = true;
@@ -210,6 +220,10 @@ public class DrawingBob extends View implements StabilityListener
 		relevantPaintingsImgs = null;
 		relevantPaintingsMats = null;
 		currentImgIndex = 0;
+		downloadImagesCounter = 0;
+		for (int i = 1; i < 7; i++) {
+			dismiss(i);
+		}	
 		return this;
 	}
 	
@@ -310,7 +324,9 @@ public class DrawingBob extends View implements StabilityListener
 								double[][] subregion = extractBoundingRect(refCorners, canvas);
 								
 								if (subregion.length > 0 && subregion[0].length > 0) {
+									//progressDialog = ProgressDialog.show(parentContext, " " , " Recognizing painting.. ", true);
 									// Extract feature points.
+									notify(0);
 									long start = System.currentTimeMillis();
 									List<FeaturePoint> featurePoints 
 										= Fast12.detect(subregion, subregion[0].length, subregion.length, 
@@ -328,7 +344,6 @@ public class DrawingBob extends View implements StabilityListener
 									if (serverIP == null)
 										return;
 									new ORSMatchThread(serverIP, featureVectors, strategy, ORSMatchResult).start();
-									
 									// Change state.
 									synchronized (this) {
 										currentState = WAIT_FOR_MATCH_RESULTS;
@@ -349,23 +364,22 @@ public class DrawingBob extends View implements StabilityListener
 								if (ORSMatchResult.isSuccessful()) {
 									Painting matchedPainting = ORSMatchResult.getMatchedPainting();
 									if (matchedPainting == null) {
-										notify("I couldn't recognize the painting. I will try again.");
-										// Show message that no painting was matched and return to IDLE state.
 										synchronized (this) {
-											currentState = IDLE;
+											currentState = AWAITING_INPUT;
 											ORSMatchResult.reset();
 										}
+										dismiss(0);
+										notify(4);
 									} else {
-										notify(matchedPainting.title() + " by " + matchedPainting.artist() + ".");
-										// THIS IS PURELY FOR TESTING THE AUGMENTATION
+										//notify();
 										relevantPaintings = ORSMatchResult.getRelevantPaintings();
 										if (relevantPaintings == null || relevantPaintings.size() == 0) {
-											notify("No relevant paintings were found. I will try again.");
-											// Return to IDLE state.
 											synchronized (this) {
-												currentState = IDLE;
+												currentState = AWAITING_INPUT;
 												ORSMatchResult.reset();
 											}
+											dismiss(1);
+											notify(3);
 										} else {
 											List<String> imageUIDs = new ArrayList<String>();
 											for (Painting p : relevantPaintings) {
@@ -376,18 +390,21 @@ public class DrawingBob extends View implements StabilityListener
 												return;
 											new ImageDownloadThread(serverIP, imageUIDs, imageDownloadResult).start();
 											// Change state.
+											sendToParentDialog(matchedPainting.title() + " by " + matchedPainting.artist());
+											dismiss(0);
+											notify(1);
 											synchronized (this) {
-												currentState = WAIT_FOR_IMAGE_DOWNLOAD;
 												ORSMatchResult.reset();
 											}
 										}
 									}
 								} else {
-									notify("Error occured when matching the painting. I will try again.");
 									synchronized (this) {
-										currentState = IDLE;
+										currentState = AWAITING_INPUT;
 										ORSMatchResult.reset();
 									}
+									dismiss(0);
+									notify(2);
 								}
 							}
 							break;
@@ -402,6 +419,7 @@ public class DrawingBob extends View implements StabilityListener
 						
 							if (imageDownloadResult.isFinished()) {
 								if (imageDownloadResult.isSuccessful()) {
+									downloadImagesCounter = 0;
 									synchronized (this) {
 										relevantPaintingsImgs = imageDownloadResult.getDownloadedImages();
 										if (relevantPaintingsImgs != null && relevantPaintingsImgs.size() > 0) {
@@ -411,19 +429,30 @@ public class DrawingBob extends View implements StabilityListener
 											for (Bitmap p : relevantPaintingsImgs) {
 												relevantPaintingsMats.add(cvMatFromBitmap(p));
 											}
-											currentState = AUGMENTING_VIDEO;
+											dismiss(6);
+											dismiss(1);
+											notify(5);
 										} else {
-											// Display a popup to the user and return to IDLE.
+											dismiss(6);
+											dismiss(1);
+											notify(2);
 											currentState = IDLE;
 										}
 										imageDownloadResult.reset();
 									}
 								} else {
-									notify("Error occured in downloading the relevant paintings. I will try again.");
 									synchronized(this) {
 										currentState = IDLE;
 										imageDownloadResult.reset();
 									}
+									dismiss(1);
+									notify(2);
+								}
+							} else {
+								downloadImagesCounter++;
+								if (downloadImagesCounter > 100) {
+									downloadImagesCounter = 0;
+									notify(6);
 								}
 							}
 							break;
@@ -498,9 +527,9 @@ public class DrawingBob extends View implements StabilityListener
 		        	if (area > MIN_AREA_THRESHOLD) {
 		        		drawPaintingOutline(paintingCorners, canvas);
 		        	}
-	        		//List<FeaturePoint> fastCorners = Fast12.detect(grayScale2D, imageWidth, imageHeight, 
-					//		   FAST_THRESHOLD, MAX_NUM_OF_FEATURES);
-	        		//drawFastCorners(fastCorners, canvas);
+	        		List<FeaturePoint> fastCorners = Fast12.detect(grayScale2D, imageWidth, imageHeight, 
+							   FAST_THRESHOLD, MAX_NUM_OF_FEATURES);
+	        		drawFastCorners(fastCorners, canvas);
 				
 				default:
 					break;
@@ -512,22 +541,30 @@ public class DrawingBob extends View implements StabilityListener
         super.onDraw(canvas);
 	}
 
-	private void notify(String msg)
+	private void notify(int type)
 	{
-		Toast toast = Toast.makeText(parentContext, msg, Toast.LENGTH_SHORT);
-		toast.setGravity(Gravity.CENTER, 0, 0);
-		toast.show();
+		parentContext.onShowDialog(type);
+	}
+	
+	private void dismiss(int type)
+	{
+		parentContext.onDismissDialog(type);
+	}
+	
+	private void sendToParentDialog(String message)
+	{
+		parentContext.receiveDialogMessage(message);
 	}
 	
 	private String getServerIP()
 	{
 		String serverIP = Prefs.getPref_serverIP(parentContext);
 		if (serverIP == null || serverIP.equals("")) {
-			notify("Server IP address was not specified.");
+			//notify("Server IP address was not specified.");
 			return null;
 		}
 		if (serverIP.split(":").length < 2) {
-			notify("Server IP address does not include port.");
+			//notify("Server IP address does not include port.");
 			return null;
 		}
 		return serverIP;
@@ -662,7 +699,8 @@ public class DrawingBob extends View implements StabilityListener
 		synchronized (this) {
 			if (currentState != WAIT_FOR_MATCH_RESULTS 
 				&& currentState != AUGMENTING_VIDEO
-				&& currentState != WAIT_FOR_IMAGE_DOWNLOAD ) {
+				&& currentState != WAIT_FOR_IMAGE_DOWNLOAD 
+				&& currentState != AWAITING_INPUT) {
 				currentState = IDLE;
 			}
 		}
@@ -674,7 +712,8 @@ public class DrawingBob extends View implements StabilityListener
 		synchronized(this) {
 			if (currentState != WAIT_FOR_MATCH_RESULTS 
 				&& currentState != AUGMENTING_VIDEO
-				&& currentState != WAIT_FOR_IMAGE_DOWNLOAD ) {				
+				&& currentState != WAIT_FOR_IMAGE_DOWNLOAD
+				&& currentState != AWAITING_INPUT) {				
 				currentState = READY_FOR_SNAPSHOT;
 			}
 		}
@@ -749,7 +788,7 @@ public class DrawingBob extends View implements StabilityListener
                 }
                 synchronized (this) {
                 	Painting newPainting = relevantPaintings.get(currentImgIndex);
-        			DrawingBob.this.notify(newPainting.title() + " by " + newPainting.artist());
+                	Toast.makeText(DrawingBob.this.parentContext, newPainting.title() + " by " + newPainting.artist(), 500);
                 }
             } catch (Exception e) {
                 // nothing

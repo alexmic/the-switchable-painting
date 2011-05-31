@@ -103,28 +103,17 @@ public class Painting {
 	public float getMatchScore(Painting painting, float threshold)
 	{
 		int matched = 0;
-		double d1 = Double.MAX_VALUE;
-		double d2 = Double.MAX_VALUE;
+		double d = Double.MAX_VALUE;
 		List<FeatureVector> otherFeatureVectors = painting.getFeatureVectors();
 		for (FeatureVector anfv : otherFeatureVectors) {
 			for (int i = 0; i < this.featureVectors.size(); ++i) {
 				double vectorDistance = this.featureVectors.get(i).getVectorDistance(anfv);
 				if (Double.isNaN(vectorDistance))
 					continue;
-				if (d1 < Double.MAX_VALUE && d2 < Double.MAX_VALUE) {
-					if (vectorDistance <= d1) {
-						d1 = vectorDistance;
-					} else if (vectorDistance <= d2) {
-						d2 = vectorDistance;
-					}
-				} else if (d1 == Double.MAX_VALUE) {
-					d1 = vectorDistance;
-				} else if (d2 == Double.MAX_VALUE) {
-					d2 = vectorDistance;
-				}
+				d = Math.min(d, vectorDistance);
 			}
-			if (d1 < threshold) matched++;
-			d1 = d2 = Double.MAX_VALUE;
+			if (d < threshold) matched++;
+			d = Double.MAX_VALUE;
 		}
 		return (float) matched / otherFeatureVectors.size();
 	}

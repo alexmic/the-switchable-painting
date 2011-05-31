@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<structure101-builder version="1.0" format="state" vendor="headway" generated-at="Sat May 28 02:36:25 BST 2011">
+<structure101-builder version="1.0" format="state" vendor="headway" generated-at="Tue May 31 20:19:13 BST 2011">
   <builder-settings includeExternals="true" diagramsTimeStamp="0" classPath="" compilationPath="">
     <s101plugin-properties>
       <isEnabled value="true"/>

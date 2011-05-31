@@ -28,7 +28,7 @@ import cv.descriptor.SiftFeatureVector;
 
 public class MatchHandler implements Handler {
 
-	private final float D_THRESHOLD = 0.5f;
+	private final float D_THRESHOLD = 0.2f;
 	
 	private Datastore ds = null;
 	
@@ -112,7 +112,6 @@ public class MatchHandler implements Handler {
 
 	private Painting getBestMatch(int strategy, Painting receivedPainting)
 	{
-		System.out.println(strategy);
 		List<Painting> storedPaintings = ds.find(Painting.class, "descriptorType", strategy).asList();
 		HashMap<Painting, Float> scores = new HashMap<Painting, Float>();
 		for (Painting p : storedPaintings) {
@@ -122,14 +121,15 @@ public class MatchHandler implements Handler {
 		float max = 0;
 		Painting bestMatch = null;
 		for (Painting p : scores.keySet()) {
-			System.out.println(p.getTitle() + ": " + scores.get(p));
 			if (scores.get(p) > max) {
 				max = scores.get(p);
 				bestMatch = p;
 			}
 		}
-		System.out.println(bestMatch.getTitle());
-		return bestMatch;
+		if (max > 0.2) {
+			return bestMatch;
+		}
+		return null;
 	}
 	
 	private List<FeatureVector> toFVList(JSONArray jsonVectors) throws JSONException

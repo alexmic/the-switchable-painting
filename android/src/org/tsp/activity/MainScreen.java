@@ -1,6 +1,8 @@
 package org.tsp.activity;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.tsp.R;
 import org.tsp.draw.DrawingBob;
@@ -8,6 +10,9 @@ import org.tsp.stability.StabilityListener;
 import org.tsp.stability.StabilityMonitor;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.hardware.Camera;
@@ -22,6 +27,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 public class MainScreen extends Activity implements SurfaceHolder.Callback, StabilityListener, OnClickListener
@@ -38,7 +44,12 @@ public class MainScreen extends Activity implements SurfaceHolder.Callback, Stab
 	private Camera camera = null;
 	private StabilityMonitor stabilityMonitor = null;
 	private TextView stabilityLabel = null;
-	private DrawingBob bob = null;
+	
+	private HashMap<Integer, Dialog> dialogs = null;
+	
+	protected DrawingBob bob = null;
+	
+	private String DIALOG_MESSAGE = null;
 	
 	private boolean hasPlayedStabilitySound = false;
 	
@@ -60,11 +71,101 @@ public class MainScreen extends Activity implements SurfaceHolder.Callback, Stab
 		stabilityMonitor = new StabilityMonitor(this);
 		stabilityMonitor.addListener(this).addListener(bob);
 		
+		dialogs = new HashMap<Integer, Dialog>();
+		
 		Button prefsButton = (Button) findViewById(R.id.prefsButton);
 		prefsButton.setOnClickListener(this);
 		addContentView(bob, new LayoutParams(480, 733));	
 	}
 
+	protected Dialog onCreateDialog(int id) 
+	{
+		Dialog dialog = null;
+		switch (id){
+			case 0:
+				dialog = createCustomDialog(id, "Please wait..", "Recognizing painting.");
+				break;
+			case 1:
+				dialog = createCustomDialog(id, "You are viewing " + DIALOG_MESSAGE + ". Do you want to see relevant paintings?", null);
+				break;
+			case 2:
+				dialog = createCustomDialog(id, "An error occured. Do you want to try again?", null);
+				break;
+			case 3:
+				dialog = createCustomDialog(id, "No relevant paintings found. Do you want to try again?", null);
+				break;
+			case 4:
+				dialog = createCustomDialog(id, "Could not recognize painting. Do you want to try again?", null);
+				break;
+			case 5:
+				dialog = createCustomDialog(id, "Paintings downloaded. Do you wish to view them?", null);
+				break;
+			case 6:
+				dialog = createCustomDialog(id, "Downloading paintings..", "Please wait..");
+		}
+		return dialog;
+	}
+	
+	public void receiveDialogMessage(String message)
+	{
+		DIALOG_MESSAGE = message;
+	}
+	
+	public void onDismissDialog(int type) 
+	{
+		if (dialogs.containsKey(type)) {
+			dismissDialog(type);
+		}
+	}
+	
+	public void onShowDialog(int type) 
+	{
+		if (dialogs.containsKey(type)) {
+			Dialog dialog = dialogs.get(type);
+			if (!dialog.isShowing()) {
+				showDialog(type);
+			}
+		} else {
+			showDialog(type);
+		}
+	}
+	
+	private Dialog createCustomDialog(int type, String message, String title)
+	{
+		Dialog dialog = null;
+		if (type == 0 || type == 6) {
+			dialog = new Dialog(this);
+		    dialog.setContentView(R.layout.notification_layout);
+		    TextView text = (TextView) dialog.findViewById(R.id.notification_text);
+		    ImageView image = (ImageView) dialog.findViewById(R.id.notification_image);
+			dialog.setTitle(title);
+	    	text.setText(message);
+		    image.setImageResource(R.drawable.loading);
+		} else {
+			final int nextState = (type == 5) ? DrawingBob.AUGMENTING_VIDEO : 
+									(type == 1) ? DrawingBob.WAIT_FOR_IMAGE_DOWNLOAD : DrawingBob.READY_FOR_SNAPSHOT;
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+	    	builder.setMessage(message)
+	    	       .setCancelable(false)
+	    	       .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+	    	           public void onClick(DialogInterface dialog, int id) {
+	    	               dialog.cancel();
+	    	        	   MainScreen.this.bob.setState(nextState);
+	    	           }
+	    	       })
+	    	       .setNegativeButton("No", new DialogInterface.OnClickListener() {
+	    	           public void onClick(DialogInterface dialog, int id) {
+	    	               dialog.cancel();
+	    	           }
+	    	       });
+	    	dialog = builder.create();
+		}
+		if (!dialogs.containsKey(type)) {
+			dialogs.put(type, dialog);
+		}
+		return dialog;
+	}
+	
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
 			int height) 
