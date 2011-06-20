@@ -20,7 +20,7 @@ public class ServerBenchmark {
 	
 	public void run() throws MalformedURLException, IOException
 	{
-		URL url = new URL("http://localhost:4444/benchmark");
+		URL url = new URL("http://localhost:9000/application/benchmark");
 		long start  	   = System.currentTimeMillis();
 		long finish 	   = start;
 		int total_requests = 0;

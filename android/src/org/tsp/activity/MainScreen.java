@@ -3,6 +3,7 @@ package org.tsp.activity;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.tsp.R;
 import org.tsp.draw.DrawingBob;
@@ -18,9 +19,11 @@ import android.graphics.Color;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PreviewCallback;
+import android.hardware.Camera.Size;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -36,14 +39,24 @@ public class MainScreen extends Activity implements SurfaceHolder.Callback, Stab
     /* We will only consider the Nexus One - since this is not
 	 * a commercial app, we hardcode the preview size.
 	 */
-	private final int PREVIEW_WIDTH = 480;
-	private final int PREVIEW_HEIGHT = 320;
+	private final int PREVIEW_WIDTH_GENERAL = 176;
+	private final int PREVIEW_HEIGHT_GENERAL = 144;
+	
+	private boolean AR = false;
     
+	private final int PREVIEW_WIDTH_AR = 240;
+	private final int PREVIEW_HEIGHT_AR = 160;
+	
 	private SurfaceView surfaceView = null;
 	private SurfaceHolder surfaceHolder = null;
 	private Camera camera = null;
 	private StabilityMonitor stabilityMonitor = null;
 	private TextView stabilityLabel = null;
+	
+	long time = 0;
+	float avg = 0;
+	int frames = 0;
+	long start = 0;
 	
 	private HashMap<Integer, Dialog> dialogs = null;
 	
@@ -66,7 +79,7 @@ public class MainScreen extends Activity implements SurfaceHolder.Callback, Stab
 		
 		stabilityLabel = (TextView) findViewById(R.id.stabilityLabel);
 		
-		bob = new DrawingBob(this, PREVIEW_WIDTH, PREVIEW_HEIGHT);
+		bob = new DrawingBob(this, PREVIEW_WIDTH_GENERAL, PREVIEW_HEIGHT_GENERAL);
 		
 		stabilityMonitor = new StabilityMonitor(this);
 		stabilityMonitor.addListener(this).addListener(bob);
@@ -176,9 +189,10 @@ public class MainScreen extends Activity implements SurfaceHolder.Callback, Stab
 		camera.stopPreview();
 		
 		Camera.Parameters parameters = camera.getParameters();
-		parameters.setPreviewSize(PREVIEW_WIDTH, PREVIEW_HEIGHT);
+		parameters.setPreviewSize(PREVIEW_WIDTH_GENERAL, PREVIEW_HEIGHT_GENERAL);
 		parameters.setWhiteBalance(Parameters.WHITE_BALANCE_DAYLIGHT);
 		parameters.setExposureCompensation(1);
+		parameters.setPreviewFrameRate(27);
 		camera.setParameters(parameters);
 		
 		camera.setDisplayOrientation(90);
@@ -191,11 +205,21 @@ public class MainScreen extends Activity implements SurfaceHolder.Callback, Stab
 	{
 		try {
 			camera = Camera.open();
+			start = System.currentTimeMillis();
 			camera.setPreviewCallback(
 				new PreviewCallback() 
 				{
 					public void onPreviewFrame(byte[] _data, Camera _camera) 
 					{
+						frames++;
+						long newStart = System.currentTimeMillis();
+						time += newStart - start;
+						start = newStart;
+						avg = time / (float) frames;
+						Log.d("AVG TIME PER FRAME", "" + avg);
+						Log.d("DIMENSIONS", "" + AR);
+						
+						//Log.d("AVG TIME PER FRAME", "" + avg);
 						if (bob != null) {
 							bob.update(_data);
 							bob.invalidate();
@@ -270,6 +294,28 @@ public class MainScreen extends Activity implements SurfaceHolder.Callback, Stab
 		if (!hasPlayedStabilitySound) {
 			//playSound();
 			hasPlayedStabilitySound = true;
+		}
+	}
+	
+	public void setCameraPreviewAR()
+	{
+		AR = true;
+		if (camera != null) {
+			Camera.Parameters parameters = camera.getParameters();
+			//parameters.setPreviewSize(PREVIEW_WIDTH_AR, PREVIEW_HEIGHT_AR);
+			//camera.setParameters(parameters);
+			//bob.setPreviewDimensions(PREVIEW_WIDTH_AR, PREVIEW_HEIGHT_AR);
+		}
+	}
+	
+	public void setCameraPreviewGeneral()
+	{
+		AR = false;
+		if (camera != null) {
+			Camera.Parameters parameters = camera.getParameters();
+			//parameters.setPreviewSize(PREVIEW_WIDTH_GENERAL, PREVIEW_HEIGHT_GENERAL);
+			//camera.setParameters(parameters);
+			//bob.setPreviewDimensions(PREVIEW_WIDTH_GENERAL, PREVIEW_HEIGHT_GENERAL);
 		}
 	}
 	

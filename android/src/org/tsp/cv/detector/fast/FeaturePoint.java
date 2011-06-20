@@ -72,5 +72,15 @@ public class FeaturePoint implements Comparable<FeaturePoint>{
 		else if (fc.score == this.score) return 0;
 		else return -1;
 	}
+	
+	public double getDistanceTo(FeaturePoint fp)
+	{
+		return Math.sqrt(( (x - fp.x()) * (x - fp.x())) + ( (y - fp.y()) * (y - fp.y())));
+	}
+	
+	public double getDistanceTo(int _x, int _y)
+	{
+		return Math.sqrt(( (x - _x) * (x - _x)) + ( (y - _y) * (y - _y)));
+	}
 
 }

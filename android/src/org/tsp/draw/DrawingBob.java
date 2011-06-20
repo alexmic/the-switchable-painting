@@ -28,6 +28,7 @@ import org.tsp.comm.ORSMatchThreadResult;
 import org.tsp.cv.descriptor.FeatureVector;
 import org.tsp.cv.descriptor.strategy.DescriptorContext;
 import org.tsp.cv.detector.fast.Fast12;
+import org.tsp.cv.detector.fast.Fast9;
 import org.tsp.cv.detector.fast.FeaturePoint;
 import org.tsp.model.Painting;
 import org.tsp.stability.StabilityListener;
@@ -64,11 +65,16 @@ public class DrawingBob extends View implements StabilityListener
     private final int SWIPE_THRESHOLD_VELOCITY = 200;
 	
 	private final int FAST_THRESHOLD = 18;
-	private final int MAX_NUM_OF_FEATURES = 250;
+	private final int MAX_NUM_OF_FEATURES = 150;
 	
 	private final int SHOWOFF_BEHAVIOUR = 0;
 	private final int NORMAL_BEHAVIOUR = 1;
 
+	
+	private boolean firstExtraction = true;
+	
+	Canvas canvas = null;
+	
 	public static final int READY_FOR_SNAPSHOT = 2;
 	public static final int WAIT_FOR_MATCH_RESULTS = 3;
 	public static final int WAIT_FOR_IMAGE_DOWNLOAD = 4;
@@ -104,6 +110,8 @@ public class DrawingBob extends View implements StabilityListener
 	private Paint paintGreen = null;
 	
 	private IplImage grayImage = null;
+	private IplImage edgeImage = null;
+
     private CvMemStorage storage = null;
     
     private DescriptorContext descriptorContext = null;
@@ -118,7 +126,6 @@ public class DrawingBob extends View implements StabilityListener
 	private CvMat currImgSrcMatrix = null;
 	
 	private CvPoint refCorners = null;
-	
 	private GestureDetector gestureDetector;
 	private View.OnTouchListener gestureListener;
 	
@@ -158,16 +165,11 @@ public class DrawingBob extends View implements StabilityListener
 		paintBlack = new Paint();
 		paintBlack.setStyle(Paint.Style.FILL);
 		paintBlack.setColor(Color.BLACK);
-		paintBlack.setStrokeWidth(1.7f);
+		paintBlack.setStrokeWidth(5f);
 		
-		imageHeight = w;
-		imageWidth = h;
+		setPreviewDimensions(w,h);
 		
-		// We are going to deal with integers so we allocate 4x the size (int = 4 bytes).
-		grayImage = IplImage.create(imageWidth * 4, imageHeight * 4, IPL_DEPTH_8U, 1);
 		storage = CvMemStorage.create();
-		
-		grayScale2D = new double[imageHeight][imageWidth];
 		
 		currImgSrcMatrix = CvMat.create(4, 2);
 		
@@ -192,8 +194,7 @@ public class DrawingBob extends View implements StabilityListener
 	{
 		this.parentWidth = parentWidth;
 		this.parentHeight = parentHeight;
-		this.aspectY = this.parentWidth / this.imageHeight;
-		this.aspectX = this.parentHeight / this.imageWidth;
+		calcAspectRatios();
 		return this;
 	}
 	
@@ -235,6 +236,7 @@ public class DrawingBob extends View implements StabilityListener
 		// We thus need to reset them on resume.
 		ORSMatchResult.reset();
 		imageDownloadResult.reset();
+		parentContext.setCameraPreviewGeneral();
 		return this;
 	}
 	
@@ -265,11 +267,28 @@ public class DrawingBob extends View implements StabilityListener
     			int pixVal = (0xff & ((int) yuv420sp[dataLine + j])) - 16;
         		if (pixVal < 0) pixVal = 0;
         		if (pixVal > 255) pixVal = 255;
-        		imageBuffer.putInt(imageLine + i, pixVal);
+        		if (currentState != AUGMENTING_VIDEO)
+        			imageBuffer.putInt(imageLine + i, pixVal);
         		grayScale2D[j][imageWidth-1-i] = pixVal;
     		}
 		}
 		return this;
+	}
+	
+	public void setPreviewDimensions(int w, int h)
+	{
+		imageHeight = w;
+		imageWidth = h;
+		// We are going to deal with integers so we allocate 4x the size (int = 4 bytes).
+		grayImage = IplImage.create(imageWidth * 4, imageHeight * 4, IPL_DEPTH_8U, 1);
+		grayScale2D = new double[imageHeight][imageWidth];
+		calcAspectRatios();
+	}
+	
+	private void calcAspectRatios() 
+	{
+		aspectY = parentWidth / imageHeight;
+		aspectX = parentHeight / imageWidth;
 	}
 	
 	public DrawingBob update(byte[] yuv420sp)
@@ -284,7 +303,7 @@ public class DrawingBob extends View implements StabilityListener
 	 * the frame is stable.
 	 */
 	@Override
-    protected void onDraw(Canvas canvas) 
+    protected void onDraw(Canvas _canvas) 
 	{
 		// The drawing procedure follows a Finite State Machine.
 		
@@ -292,7 +311,7 @@ public class DrawingBob extends View implements StabilityListener
         	
         	// Read behaviour from preferences.
         	currentBehaviour = Prefs.getPref_isShowoffBehaviourEnabled(parentContext)? SHOWOFF_BEHAVIOUR : NORMAL_BEHAVIOUR;
-        	
+        	canvas = _canvas;
         	switch (currentBehaviour) {
         		
 				////////////////////////////////////////
@@ -431,6 +450,7 @@ public class DrawingBob extends View implements StabilityListener
 											}
 											dismiss(6);
 											dismiss(1);
+											parentContext.setCameraPreviewAR();
 											notify(5);
 										} else {
 											dismiss(6);
@@ -466,25 +486,16 @@ public class DrawingBob extends View implements StabilityListener
 						/////////////////////////////////////////////////
 						case AUGMENTING_VIDEO:
 						
+							findNextLikelyCorners(Fast9.detect(grayScale2D, grayScale2D[0].length, grayScale2D.length, 24, 100));
 							Bitmap currentImage;
 							CvMat srcMatrix;
 							synchronized(this) {
 								currentImage = relevantPaintingsImgs.get(currentImgIndex);
 								srcMatrix = relevantPaintingsMats.get(currentImgIndex);
 							}
-							CvPoint trackedCorners = trackCorners(refCorners);
+							
 							CvMat dstMatrix = CvMat.create(4, 2);
-							updateCvMat(dstMatrix, trackedCorners);
-							refCorners = trackedCorners;
-							Rect rect = new Rect();
-							for (int i = 0; i < 4; i++) {
-								CvPoint p = refCorners.position(i);
-								rect.top = (int) (p.y() * aspectY);
-								rect.bottom = rect.top + 5;
-								rect.left = (int) (p.x() * aspectX);
-								rect.right = rect.left + 5;
-								canvas.drawRect(rect, paintRed);
-							}
+							updateCvMat(dstMatrix, refCorners);
 							// Find the transformation matrix.
 							CvMat hMatrix = CvMat.create(3, 3);
 							cvFindHomography(srcMatrix, dstMatrix, hMatrix);
@@ -497,9 +508,10 @@ public class DrawingBob extends View implements StabilityListener
 							Matrix transformMatrix = new Matrix();
 							transformMatrix.setValues(values);
 							canvas.drawBitmap(currentImage, transformMatrix, null);
-							
+							drawPaintingOutline(refCorners);
 							break;
-						
+							
+							
 						//////////////////////////////////////////////
 						// IDLE							 		 	//
 						// -----						  			//
@@ -521,16 +533,29 @@ public class DrawingBob extends View implements StabilityListener
 				 	// Presentation-oriented mode - no recognition is  //
 					// done, but everything is drawn on the screen.	   //
 					/////////////////////////////////////////////////////
-					CvPoint paintingCorners = new CvPoint(4);
-		        	double area  = extractCorners(paintingCorners);
-		        	drawEdgeImage(canvas);
-		        	if (area > MIN_AREA_THRESHOLD) {
-		        		drawPaintingOutline(paintingCorners, canvas);
-		        	}
-	        		List<FeaturePoint> fastCorners = Fast12.detect(grayScale2D, imageWidth, imageHeight, 
-							   FAST_THRESHOLD, MAX_NUM_OF_FEATURES);
-	        		drawFastCorners(fastCorners, canvas);
-				
+					/*if (firstExtraction) {
+						refCorners = new CvPoint(4);
+						double area = extractCorners(refCorners);
+						if (area > MIN_AREA_THRESHOLD) {
+							drawCVCorners(refCorners);
+							firstExtraction = false;
+						}
+					} else {
+						CvPoint trackedCorners = trackCorners(refCorners);
+						drawCVCorners(trackedCorners);
+						refCorners = trackedCorners;
+					}*/
+					//drawEdgeImage(canvas);
+					//if (area > MIN_AREA_THRESHOLD) {
+		        		//drawPaintingOutline(paintingCorners, canvas);
+						//double[][] subregion = extractBoundingRect(paintingCorners, canvas);
+						//if (subregion.length > 0 && subregion[0].length > 0) {
+					//	List<FeaturePoint> fastCorners
+					//		= Fast9.detect(grayScale2D, grayScale2D[0].length, grayScale2D.length, 20, 100);
+					//	drawFastCorners(fastCorners, canvas);
+							
+					//	}
+					//}
 				default:
 					break;
         	}
@@ -620,27 +645,27 @@ public class DrawingBob extends View implements StabilityListener
 		return subregion;
 	}
 
-	private CvPoint trackCorners(CvPoint previousCorners) 
+	private void findNextLikelyCorners(List<FeaturePoint> fastCorners) 
 	{
-		//CvPoint trackedCorners = new CvPoint(4);
-		//for (int i = 0; i < 4; i++) {
-		//	CvPoint singleCorner = trackSingleCorner(previousCorners.position(i));
-		//	trackedCorners.position(i).x(singleCorner.position(i).x());
-		//	trackedCorners.position(i).y(singleCorner.position(i).y());
-		//}
-		//return trackedCorners;
-		return previousCorners;
+		//drawFastCorners(fastCorners);
+		for (int i = 0; i < 4; i++) {
+			FeaturePoint closest = new FeaturePoint(refCorners.position(i).x(), refCorners.position(i).y());
+			double minDist = Integer.MAX_VALUE;
+			int currX = refCorners.position(i).x();
+			int currY = refCorners.position(i).y();
+			for (FeaturePoint fp : fastCorners) {
+				double d = fp.getDistanceTo(currX, currY); 
+				if (d < minDist && d < 40) {
+					closest = fp;
+					minDist = d;
+				}
+			}
+			refCorners.position(i).x(closest.x());
+			refCorners.position(i).y(closest.y());
+		}
 	}
 	
-	private CvPoint trackSingleCorner(CvPoint corner)
-	{
-		//CvPoint trackedCorner = new CvPoint(1);
-		// Extract region of interest
-		// Find corners
-		return null;
-	}
-
-	private void drawFastCorners(List<FeaturePoint> corners, Canvas canvas) 
+	private void drawFastCorners(List<FeaturePoint> corners) 
 	{
 		Rect rect = new Rect();
 		for (FeaturePoint fp : corners) {
@@ -652,7 +677,7 @@ public class DrawingBob extends View implements StabilityListener
 		}
 	}
 
-	private void drawPaintingOutline(CvPoint corners, Canvas canvas) 
+	private void drawPaintingOutline(CvPoint corners) 
 	{
 		int prevX = -1;
 		int prevY = -1;
@@ -664,7 +689,29 @@ public class DrawingBob extends View implements StabilityListener
 				prevY = currY;
 				currX = corners.position(i % 4).x();
 				currY = corners.position(i % 4).y();
-				canvas.drawLine(prevX * aspectX, prevY * aspectY, currX * aspectX, currY * aspectY, paintGreen);
+				canvas.drawLine(prevX * aspectX, prevY * aspectY, currX * aspectX, currY * aspectY, paintBlack);
+			} else {
+				currX = corners.position(i % 4).x();
+				currY = corners.position(i % 4).y();
+			}
+		}
+		
+	}
+	
+	private void drawCVCorners(CvPoint corners) 
+	{
+		int currX = -1;
+		int currY = -1;
+		Rect rect = new Rect();
+		for (int i = 0; i < 5; i++) {
+			if (currX != -1) {
+				currX = corners.position(i % 4).x();
+				currY = corners.position(i % 4).y();
+				rect.top = (int) (currY * aspectY);
+				rect.bottom = rect.top + 5;
+				rect.left = (int) (currX * aspectX);
+				rect.right = rect.left + 5;
+				canvas.drawRect(rect, paintGreen);
 			} else {
 				currX = corners.position(i % 4).x();
 				currY = corners.position(i % 4).y();
