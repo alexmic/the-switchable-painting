@@ -60,14 +60,15 @@ public class RecommendationHandler implements Handler {
 	{
 		JSONArray arrayRecommendations = new JSONArray();
 		Painting painting = ds.find(Painting.class, "paintingId", matched.get("pid")).get();
-		painting.getTags();
 		List<Painting> recommendedPaintings = ds.createQuery(Painting.class).field("tags").hasAnyOf(painting.getTags()).asList();
 		for (Painting p : recommendedPaintings) {
 			JSONObject o = new JSONObject();
-			o.put("pid", p.getPaintingId());
-			o.put("title", p.getTitle());
-			o.put("artist", p.getArtist());
-			arrayRecommendations.put(o);
+			if (!p.getPaintingId().equals(painting.getPaintingId())) {
+				o.put("pid", p.getPaintingId());
+				o.put("title", p.getTitle());
+				o.put("artist", p.getArtist());
+				arrayRecommendations.put(o);
+			}
 		}
 		return arrayRecommendations;
 	}

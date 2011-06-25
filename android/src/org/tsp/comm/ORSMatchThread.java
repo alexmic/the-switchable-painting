@@ -16,6 +16,8 @@ import org.json.JSONObject;
 import org.tsp.cv.descriptor.FeatureVector;
 import org.tsp.model.Painting;
 
+import android.util.Log;
+
 public class ORSMatchThread extends Thread
 {
 	private final String serverHandler = "/api/match";
@@ -68,7 +70,9 @@ public class ORSMatchThread extends Thread
 			JSONObject response = new JSONObject(sendPOST(serverIP + serverHandler, payload));
 			if (!response.isNull("matched")) {
 				JSONObject matched = response.getJSONObject("matched");
-				result.setMatchedPainting(new Painting(matched.getString("pid"), matched.getString("title"), matched.getString("artist")));
+				if (matched.has("pid") && matched.has("title") && matched.has("artist")) {
+					result.setMatchedPainting(new Painting(matched.getString("pid"), matched.getString("title"), matched.getString("artist")));
+				}
 			}
 			if (!response.isNull("relevant")) {
 				JSONArray relevant = response.getJSONArray("relevant");

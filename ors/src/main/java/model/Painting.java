@@ -14,6 +14,7 @@ public class Painting {
 	private String artist;
 	private String paintingId;
 	private int descriptorType = 1;
+	private String type;
 	private int[] scaleIndices = null;
 	@Embedded private List<String> tags;
 	@Embedded private List<FeatureVector> featureVectors;
@@ -53,6 +54,12 @@ public class Painting {
 		return this;
 	}
 	
+	public Painting setType(String type)
+	{
+		this.type = type;
+		return this;
+	}
+	
 	public Painting setScaleIndices(int[] indexes)
 	{
 		this.scaleIndices = indexes;
@@ -78,6 +85,11 @@ public class Painting {
 	public List<FeatureVector> getFeatureVectors()
 	{
 		return this.featureVectors;
+	}
+	
+	public String getType()
+	{
+		return type;
 	}
 	
 	public ObjectId getId()

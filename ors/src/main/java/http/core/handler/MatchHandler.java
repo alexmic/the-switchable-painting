@@ -28,7 +28,7 @@ import cv.descriptor.SiftFeatureVector;
 
 public class MatchHandler implements Handler {
 
-	private final float D_THRESHOLD = 0.2f;
+	private final float D_THRESHOLD = 0.25f;
 	
 	private Datastore ds = null;
 	
@@ -112,7 +112,7 @@ public class MatchHandler implements Handler {
 
 	private Painting getBestMatch(int strategy, Painting receivedPainting)
 	{
-		List<Painting> storedPaintings = ds.find(Painting.class, "descriptorType", strategy).asList();
+		List<Painting> storedPaintings = ds.find(Painting.class, "descriptorType", strategy).filter("type", "m").asList();
 		HashMap<Painting, Float> scores = new HashMap<Painting, Float>();
 		for (Painting p : storedPaintings) {
 			if (p.getFeatureVectors() == null) continue;
@@ -121,6 +121,7 @@ public class MatchHandler implements Handler {
 		float max = 0;
 		Painting bestMatch = null;
 		for (Painting p : scores.keySet()) {
+			System.out.println(p.getTitle() + " " + scores.get(p));
 			if (scores.get(p) > max) {
 				max = scores.get(p);
 				bestMatch = p;
@@ -140,7 +141,7 @@ public class MatchHandler implements Handler {
 			JSONArray descriptor = obj.getJSONArray("d");
 			float[] fDescriptor = new float[descriptor.length()];
 			for (int j = 0; j < descriptor.length(); ++j) {
-				fDescriptor[j] = (float) descriptor.getLong(j);
+				fDescriptor[j] = (float) descriptor.getDouble(j);
 			}
 			fvList.add(new SiftFeatureVector(obj.getInt("x"), obj.getInt("y"), fDescriptor)); 
 		}

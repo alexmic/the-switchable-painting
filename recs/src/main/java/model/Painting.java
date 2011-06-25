@@ -18,6 +18,7 @@ public class Painting {
 	private String paintingId;
 	private int descriptorType = 1;
 	private int[] scaleIndices = null;
+	private String type;
 	@Embedded private List<String> tags;
 	@Embedded private List<FeatureVector> featureVectors;
 	
@@ -47,6 +48,12 @@ public class Painting {
 	public Painting setArtist(String artist)
 	{
 		this.artist = artist;
+		return this;
+	}
+	
+	public Painting setType(String type)
+	{
+		this.type = type;
 		return this;
 	}
 	
@@ -101,6 +108,11 @@ public class Painting {
 	public List<String> getTags()
 	{
 		return this.tags;
+	}
+	
+	public String getType()
+	{
+		return this.type;
 	}
 	
 	public float getMatchScore(Painting painting, float threshold)

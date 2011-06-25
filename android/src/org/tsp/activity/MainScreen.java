@@ -39,13 +39,13 @@ public class MainScreen extends Activity implements SurfaceHolder.Callback, Stab
     /* We will only consider the Nexus One - since this is not
 	 * a commercial app, we hardcode the preview size.
 	 */
-	private final int PREVIEW_WIDTH_GENERAL = 176;
-	private final int PREVIEW_HEIGHT_GENERAL = 144;
+	private final int PREVIEW_WIDTH_GENERAL = 176;//480;
+	private final int PREVIEW_HEIGHT_GENERAL = 144;//320;
 	
 	private boolean AR = false;
     
-	private final int PREVIEW_WIDTH_AR = 240;
-	private final int PREVIEW_HEIGHT_AR = 160;
+	private final int PREVIEW_WIDTH_AR = 176;
+	private final int PREVIEW_HEIGHT_AR = 144;
 	
 	private SurfaceView surfaceView = null;
 	private SurfaceHolder surfaceHolder = null;
@@ -63,6 +63,7 @@ public class MainScreen extends Activity implements SurfaceHolder.Callback, Stab
 	protected DrawingBob bob = null;
 	
 	private String DIALOG_MESSAGE = null;
+	private boolean isDirtyMessage = false;
 	
 	private boolean hasPlayedStabilitySound = false;
 	
@@ -90,7 +91,15 @@ public class MainScreen extends Activity implements SurfaceHolder.Callback, Stab
 		prefsButton.setOnClickListener(this);
 		addContentView(bob, new LayoutParams(480, 733));	
 	}
-
+	
+	protected void onPrepareDialog(int id, Dialog dialog)
+	{ 
+		if (isDirtyMessage) {
+			((AlertDialog) dialog).setMessage("You are viewing " + DIALOG_MESSAGE + ". Do you want to see relevant paintings?");
+			isDirtyMessage = false;
+		}
+	} 
+	
 	protected Dialog onCreateDialog(int id) 
 	{
 		Dialog dialog = null;
@@ -122,6 +131,7 @@ public class MainScreen extends Activity implements SurfaceHolder.Callback, Stab
 	public void receiveDialogMessage(String message)
 	{
 		DIALOG_MESSAGE = message;
+		isDirtyMessage = true;
 	}
 	
 	public void onDismissDialog(int type) 
@@ -302,8 +312,8 @@ public class MainScreen extends Activity implements SurfaceHolder.Callback, Stab
 		AR = true;
 		if (camera != null) {
 			Camera.Parameters parameters = camera.getParameters();
-			//parameters.setPreviewSize(PREVIEW_WIDTH_AR, PREVIEW_HEIGHT_AR);
-			//camera.setParameters(parameters);
+			parameters.setPreviewSize(PREVIEW_WIDTH_AR, PREVIEW_HEIGHT_AR);
+			camera.setParameters(parameters);
 			//bob.setPreviewDimensions(PREVIEW_WIDTH_AR, PREVIEW_HEIGHT_AR);
 		}
 	}
@@ -313,16 +323,17 @@ public class MainScreen extends Activity implements SurfaceHolder.Callback, Stab
 		AR = false;
 		if (camera != null) {
 			Camera.Parameters parameters = camera.getParameters();
-			//parameters.setPreviewSize(PREVIEW_WIDTH_GENERAL, PREVIEW_HEIGHT_GENERAL);
-			//camera.setParameters(parameters);
-			//bob.setPreviewDimensions(PREVIEW_WIDTH_GENERAL, PREVIEW_HEIGHT_GENERAL);
+			parameters.setPreviewSize(PREVIEW_WIDTH_GENERAL, PREVIEW_HEIGHT_GENERAL);
+			camera.setParameters(parameters);
+			bob.setPreviewDimensions(PREVIEW_WIDTH_GENERAL, PREVIEW_HEIGHT_GENERAL);
 		}
 	}
 	
-	private void playSound()
+	public void playSound()
 	{
-		MediaPlayer mp = MediaPlayer.create(this, R.raw.beep);
+		MediaPlayer mp = MediaPlayer.create(this, R.raw.cork);
         mp.start();
+        mp.setVolume(220, 220);
         mp.setOnCompletionListener(
         	new OnCompletionListener() 
         	{

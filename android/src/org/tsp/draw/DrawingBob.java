@@ -71,7 +71,7 @@ public class DrawingBob extends View implements StabilityListener
 	private final int NORMAL_BEHAVIOUR = 1;
 
 	
-	private boolean firstExtraction = true;
+	private boolean firstShow = true;
 	
 	Canvas canvas = null;
 	
@@ -275,7 +275,7 @@ public class DrawingBob extends View implements StabilityListener
 		return this;
 	}
 	
-	public void setPreviewDimensions(int w, int h)
+	public synchronized void setPreviewDimensions(int w, int h)
 	{
 		imageHeight = w;
 		imageWidth = h;
@@ -285,7 +285,7 @@ public class DrawingBob extends View implements StabilityListener
 		calcAspectRatios();
 	}
 	
-	private void calcAspectRatios() 
+	private synchronized void calcAspectRatios() 
 	{
 		aspectY = parentWidth / imageHeight;
 		aspectX = parentHeight / imageWidth;
@@ -321,8 +321,6 @@ public class DrawingBob extends View implements StabilityListener
 				////////////////////////////////////////
 				case NORMAL_BEHAVIOUR:
 			
-					Log.d("DrawingBob", "--- NORMAL BEHAVIOUR State: " + currentState + " ---");
-					
 					switch (currentState) {
 						
 						////////////////////////////////////////////////
@@ -339,34 +337,29 @@ public class DrawingBob extends View implements StabilityListener
 							double area = extractCorners(refCorners);
 							
 							if (area > MIN_AREA_THRESHOLD) {
-								// Extract bounding rectangle.
-								double[][] subregion = extractBoundingRect(refCorners, canvas);
-								
-								if (subregion.length > 0 && subregion[0].length > 0) {
-									//progressDialog = ProgressDialog.show(parentContext, " " , " Recognizing painting.. ", true);
-									// Extract feature points.
-									notify(0);
-									long start = System.currentTimeMillis();
-									List<FeaturePoint> featurePoints 
-										= Fast12.detect(subregion, subregion[0].length, subregion.length, 
-														FAST_THRESHOLD, MAX_NUM_OF_FEATURES);
-									Log.d("---DRAWING---", "REGION: " + subregion[0].length + "x" + subregion.length);
-									Log.d("---DRAWING---", "FAST features: " + featurePoints.size() + " in " + (System.currentTimeMillis() - start) + " ms.");
-									// Run descriptor.
-									int strategy = Integer.valueOf(Prefs.getPref_selectDescriptor(parentContext));
-									descriptorContext = new DescriptorContext(strategy);
-									start = System.currentTimeMillis();
-									List<FeatureVector> featureVectors = descriptorContext.getFeatureVectors(featurePoints, subregion);
-									Log.d("---DRAWING---", "SIFT features: " + featureVectors.size() + " in " + (System.currentTimeMillis() - start) + " ms.");
-									// Upload feature vectors to ORS.
-									String serverIP = getServerIP();
-									if (serverIP == null)
-										return;
-									new ORSMatchThread(serverIP, featureVectors, strategy, ORSMatchResult).start();
-									// Change state.
-									synchronized (this) {
-										currentState = WAIT_FOR_MATCH_RESULTS;
-									}
+								// Extract feature points.
+								//double[][] subregion = extractBoundingRect(refCorners);
+								drawPaintingOutline(refCorners, paintGreen);
+								parentContext.playSound();
+								notify(0);
+								//List<FeaturePoint> featurePoints 
+								//	= Fast12.detect(subregion, subregion[0].length, subregion.length, 
+								//	
+								List<FeaturePoint> featurePoints 
+									= Fast12.detect(grayScale2D, grayScale2D[0].length, grayScale2D.length, 
+												FAST_THRESHOLD, MAX_NUM_OF_FEATURES);
+								// Run descriptor.
+								int strategy = Integer.valueOf(Prefs.getPref_selectDescriptor(parentContext));
+								descriptorContext = new DescriptorContext(strategy);
+								List<FeatureVector> featureVectors = descriptorContext.getFeatureVectors(featurePoints, grayScale2D);
+								// Upload feature vectors to ORS.
+								String serverIP = getServerIP();
+								if (serverIP == null)
+									return;
+								new ORSMatchThread(serverIP, featureVectors, strategy, ORSMatchResult).start();
+								// Change state.
+								synchronized (this) {
+									currentState = WAIT_FOR_MATCH_RESULTS;
 								}
 				        	}
 							break;
@@ -397,7 +390,7 @@ public class DrawingBob extends View implements StabilityListener
 												currentState = AWAITING_INPUT;
 												ORSMatchResult.reset();
 											}
-											dismiss(1);
+											dismiss(0);
 											notify(3);
 										} else {
 											List<String> imageUIDs = new ArrayList<String>();
@@ -450,7 +443,7 @@ public class DrawingBob extends View implements StabilityListener
 											}
 											dismiss(6);
 											dismiss(1);
-											parentContext.setCameraPreviewAR();
+											setARMode();
 											notify(5);
 										} else {
 											dismiss(6);
@@ -486,14 +479,19 @@ public class DrawingBob extends View implements StabilityListener
 						/////////////////////////////////////////////////
 						case AUGMENTING_VIDEO:
 						
-							findNextLikelyCorners(Fast9.detect(grayScale2D, grayScale2D[0].length, grayScale2D.length, 24, 100));
+							List<FeaturePoint> corners = Fast9.detect(grayScale2D, grayScale2D[0].length, grayScale2D.length, 24, 200);
+							findNextLikelyCorners(corners);
 							Bitmap currentImage;
 							CvMat srcMatrix;
 							synchronized(this) {
 								currentImage = relevantPaintingsImgs.get(currentImgIndex);
 								srcMatrix = relevantPaintingsMats.get(currentImgIndex);
+								if (firstShow) {
+									Painting firstPainting = relevantPaintings.get(currentImgIndex);
+				                	Toast.makeText(DrawingBob.this.parentContext, firstPainting.title() + " by " + firstPainting.artist(), 500).show();
+				                	firstShow = false;
+								}
 							}
-							
 							CvMat dstMatrix = CvMat.create(4, 2);
 							updateCvMat(dstMatrix, refCorners);
 							// Find the transformation matrix.
@@ -508,7 +506,7 @@ public class DrawingBob extends View implements StabilityListener
 							Matrix transformMatrix = new Matrix();
 							transformMatrix.setValues(values);
 							canvas.drawBitmap(currentImage, transformMatrix, null);
-							drawPaintingOutline(refCorners);
+							drawPaintingOutline(refCorners, paintBlack);
 							break;
 							
 							
@@ -533,29 +531,12 @@ public class DrawingBob extends View implements StabilityListener
 				 	// Presentation-oriented mode - no recognition is  //
 					// done, but everything is drawn on the screen.	   //
 					/////////////////////////////////////////////////////
-					/*if (firstExtraction) {
-						refCorners = new CvPoint(4);
-						double area = extractCorners(refCorners);
-						if (area > MIN_AREA_THRESHOLD) {
-							drawCVCorners(refCorners);
-							firstExtraction = false;
-						}
-					} else {
-						CvPoint trackedCorners = trackCorners(refCorners);
-						drawCVCorners(trackedCorners);
-						refCorners = trackedCorners;
-					}*/
-					//drawEdgeImage(canvas);
-					//if (area > MIN_AREA_THRESHOLD) {
-		        		//drawPaintingOutline(paintingCorners, canvas);
-						//double[][] subregion = extractBoundingRect(paintingCorners, canvas);
-						//if (subregion.length > 0 && subregion[0].length > 0) {
-					//	List<FeaturePoint> fastCorners
-					//		= Fast9.detect(grayScale2D, grayScale2D[0].length, grayScale2D.length, 20, 100);
-					//	drawFastCorners(fastCorners, canvas);
-							
-					//	}
-					//}
+					CvPoint corners = new CvPoint(4);
+					extractCorners(corners);
+					drawPaintingOutline(corners, paintGreen);
+					List<FeaturePoint> fastCorners
+						= Fast9.detect(grayScale2D, grayScale2D[0].length, grayScale2D.length, 20, 100);
+					drawFastCorners(fastCorners);
 				default:
 					break;
         	}
@@ -574,6 +555,17 @@ public class DrawingBob extends View implements StabilityListener
 	private void dismiss(int type)
 	{
 		parentContext.onDismissDialog(type);
+	}
+	
+	private void setARMode()
+	{
+		parentContext.setCameraPreviewAR();
+		float multX = (float) 176 / (float) 480;
+		float multY = (float) 144 / (float) 320;
+		//for (int i = 0; i < 4; i++) {
+		//	refCorners.position(i).x((int) (refCorners.position(i).x() * multY));
+		//	refCorners.position(i).y((int) (refCorners.position(i).y() * multX));
+		//}
 	}
 	
 	private void sendToParentDialog(String message)
@@ -620,7 +612,7 @@ public class DrawingBob extends View implements StabilityListener
 		}
 	}
 	
-	private double[][] extractBoundingRect(CvPoint paintingCorners, Canvas canvas) {
+	private double[][] extractBoundingRect(CvPoint paintingCorners) {
 		int minX = imageWidth;
 		int maxX = 0;
 		int minY = imageHeight;
@@ -632,10 +624,6 @@ public class DrawingBob extends View implements StabilityListener
 			maxX = Math.max(maxX, p.x());
 			maxY = Math.max(maxY, p.y());
 		}
-		canvas.drawLine(minX * aspectX, minY * aspectY, maxX * aspectX, minY * aspectY, paintGreen);
-		canvas.drawLine(maxX * aspectX, minY * aspectY, maxX * aspectX, maxY * aspectY, paintGreen);
-		canvas.drawLine(maxX * aspectX, maxY * aspectY, minX * aspectX, maxY * aspectY, paintGreen);
-		canvas.drawLine(minX * aspectX, maxY * aspectY, minX * aspectX, minY * aspectY, paintGreen);
 		double[][] subregion = new double[maxY - minY][maxX - minX];
 		for (int y = minY; y < maxY; y++) {
 			for (int x = minX; x <maxX; x++) {
@@ -655,7 +643,7 @@ public class DrawingBob extends View implements StabilityListener
 			int currY = refCorners.position(i).y();
 			for (FeaturePoint fp : fastCorners) {
 				double d = fp.getDistanceTo(currX, currY); 
-				if (d < minDist && d < 40) {
+				if (d < minDist && d < 20) {
 					closest = fp;
 					minDist = d;
 				}
@@ -677,7 +665,7 @@ public class DrawingBob extends View implements StabilityListener
 		}
 	}
 
-	private void drawPaintingOutline(CvPoint corners) 
+	private void drawPaintingOutline(CvPoint corners, Paint paint) 
 	{
 		int prevX = -1;
 		int prevY = -1;
@@ -689,7 +677,7 @@ public class DrawingBob extends View implements StabilityListener
 				prevY = currY;
 				currX = corners.position(i % 4).x();
 				currY = corners.position(i % 4).y();
-				canvas.drawLine(prevX * aspectX, prevY * aspectY, currX * aspectX, currY * aspectY, paintBlack);
+				canvas.drawLine(prevX * aspectX, prevY * aspectY, currX * aspectX, currY * aspectY, paint);
 			} else {
 				currX = corners.position(i % 4).x();
 				currY = corners.position(i % 4).y();
@@ -835,7 +823,7 @@ public class DrawingBob extends View implements StabilityListener
                 }
                 synchronized (this) {
                 	Painting newPainting = relevantPaintings.get(currentImgIndex);
-                	Toast.makeText(DrawingBob.this.parentContext, newPainting.title() + " by " + newPainting.artist(), 500);
+                	Toast.makeText(DrawingBob.this.parentContext, newPainting.title() + " by " + newPainting.artist(), 500).show();
                 }
             } catch (Exception e) {
                 // nothing

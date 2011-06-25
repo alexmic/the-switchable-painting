@@ -48,6 +48,7 @@ public class DescribeHandler implements Handler {
 		String path = "/Users/alexis/Desktop/Dev/IndividualProject/server/storage/img";
 		if (requestParams.containsKey("id")) {
 			String pID = requestParams.get("id");
+			System.out.println(pID);
 			char[] pIDChars = pID.toCharArray(); 
 			String imgPath = path + "/" + pIDChars[0] + "/" + pIDChars[1] + "/" + pID;
 			String[] exts = {"png", "jpg", "jpeg", "gif"};
@@ -108,7 +109,8 @@ public class DescribeHandler implements Handler {
 									   .setTitle(requestParams.containsKey("title")? requestParams.get("title"): "Untitled")
 									   .setTags(tags)
 									   .setFeatureVectors(multiScaleVectors)
-									   .setScaleIndices(scaleIndices);
+									   .setScaleIndices(scaleIndices)
+									   .setType("r");
 				ds.save(newPainting);
 				return new JSONObject().put("s", true).put("id", pID).put("msg", "").toString();
 			
