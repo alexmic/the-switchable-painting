@@ -3,3 +3,18 @@
 ***************************
 
 Dissertation project at Imperial College London.
+
+Description
+===========
+
+The purpose of the project is to enhance art discovery through augmented reality. It takes the form
+of an Android application which can extract and recognize paintings from walls and overlay recommended
+paintings over them, hence 'switching' them out.
+
+Components
+==========
+
+android/: Android application.
+ors/: A Java HTTP service using my RSJWS framework, performing online image recognition using SIFT.
+server/: A Python Tornado proxy server for image uploads and more.
+recs/: A painting recommendation service.
